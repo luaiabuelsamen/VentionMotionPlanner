@@ -1,0 +1,67 @@
+mesh_files:
+  base:
+    visual:
+      mesh: "package://gantry/meshes/base.dae"
+      material:
+        name: "LightGrey"
+        color: "0.7 0.7 0.7 1.0"
+    collision:
+      mesh: "package://gantry/meshes/base.stl"
+
+  shoulder:
+    visual:
+      mesh: "package://gantry/meshes/shoulder.dae"
+      material:
+        name: "LightGrey"
+        color: "0.7 0.7 0.7 1.0"
+    collision:
+      mesh: "package://gantry/meshes/shoulder.stl"
+
+  upper_arm:
+    visual:
+      mesh: "package://gantry/meshes/upperarm.dae"
+      material:
+        name: "LightGrey"
+        color: "0.7 0.7 0.7 1.0"
+    collision:
+      mesh: "package://gantry/meshes/upperarm.stl"
+      mesh_files:
+
+  forearm:
+    visual:
+      mesh: "package://gantry/meshes/forearm.dae"
+      material:
+        name: "LightGrey"
+        color: "0.7 0.7 0.7 1.0"
+    collision:
+      mesh: "package://gantry/meshes/forearm.stl"
+
+  wrist_1:
+    visual:
+      mesh: "package://gantry/meshes/wrist1.dae"
+      material:
+        name: "LightGrey"
+        color: "0.7 0.7 0.7 1.0"
+    collision:
+      mesh: "package://gantry/meshes/wrist1.stl"
+    visual_offset: -0.127
+
+  wrist_2:
+    visual:
+      mesh: "package://gantry/meshes/wrist2.dae"
+      material:
+        name: "LightGrey"
+        color: "0.7 0.7 0.7 1.0"
+    collision:
+      mesh: "package://gantry/meshes/wrist2.stl"
+    visual_offset: -0.0997
+
+  wrist_3:
+    visual:
+      mesh: "package://gantry/meshes/wrist3.dae"
+      material:
+        name: "LightGrey"
+        color: "0.7 0.7 0.7 1.0"
+    collision:
+      mesh: "package://gantry/meshes/wrist3.stl"
+    visual_offset: -0.0989
