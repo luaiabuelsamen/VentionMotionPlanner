@@ -1,0 +1,1 @@
+![Demo GIF](https://github.com/luaiabuelsamen/VentionMotionPlanner/blob/main/src/mujoco_curobo/demo.gif)

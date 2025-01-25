@@ -1,1 +1,0 @@
-![Demo GIF](https://media.giphy.com/media/YOUR_GIF_LINK_HERE/giphy.gif)

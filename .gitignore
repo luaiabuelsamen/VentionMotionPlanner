@@ -1,4 +1,8 @@
+__pycache__
 build
 install
 log
-__pycache__
+
+#too large
+*.obj
+src/motion_plan/motion_plan/CAD/base_link.STL
