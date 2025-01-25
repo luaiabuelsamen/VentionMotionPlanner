@@ -1,0 +1,22 @@
+<mujoco model="ur5e_scene">
+  <!-- UR5e -->
+  <include file="./ur5e.xml" />
+
+  <!-- Floor and Sky -->
+  <include file="../object/floor_sky.xml" />
+
+  <!-- Worldbody -->
+  <worldbody>
+
+    <!-- Table -->
+    <body name="table" pos="0.0 0.0 -0.1" quat="1 0 0 0">
+      <geom type="box" size="1.1 1.1 0.1" rgba="0.8 0.8 0.8 1" />
+    </body>
+
+    <!-- Cube6 -->
+    <body name="cube6" pos="0.4 -0.1 -0.3" quat="1 0 0 0">
+      <geom type="box" size="0.05 0.05 0.75" rgba="1.0 0.0 0.0 1.0" />
+    </body>
+
+  </worldbody>
+</mujoco>
