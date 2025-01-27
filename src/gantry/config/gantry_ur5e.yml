@@ -34,45 +34,11 @@ robot_cfg:
       ur_wrist_3_link:
         - "center": [-0.0, 0.004, -0.04]
           "radius": 0.05325
-        - "center": [0.005, 0.001, -0.039]
-          "radius": 0.05233
-        - "center": [-0.006, -0.001, -0.038]
-          "radius": 0.05141
-        - "center": [-0.0, 0.023, -0.02]
-          "radius": 0.03482
-        - "center": [0.01, -0.01, -0.032]
-          "radius": 0.04312
-        - "center": [-0.022, 0.005, -0.021]
-          "radius": 0.03482
-        - "center": [0.025, -0.003, -0.017]
-          "radius": 0.03206
-        - "center": [-0.011, -0.023, -0.02]
-          "radius": 0.03114
-        - "center": [0.008, -0.027, -0.015]
-          "radius": 0.02837
-        - "center": [0.018, 0.016, -0.022]
-          "radius": 0.03298
       ur_wrist_2_link:
         - "center": [0.0, -0.01, -0.001]
           "radius": 0.05736
         - "center": [0.0, 0.008, -0.001]
           "radius": 0.05736
-        - "center": [0.001, -0.001, -0.036]
-          "radius": 0.05674
-        - "center": [-0.0, -0.02, -0.0]
-          "radius": 0.05674
-        - "center": [0.004, 0.108, 0.005]
-          "radius": 0.08263
-        - "center": [-0.003, 0.024, 0.015]
-          "radius": 0.04134
-        - "center": [-0.015, 0.024, -0.002]
-          "radius": 0.04195
-        - "center": [0.015, -0.036, 0.007]
-          "radius": 0.0401
-        - "center": [0.015, 0.028, 0.012]
-          "radius": 0.03764
-        - "center": [0.008, -0.037, -0.016]
-          "radius": 0.03949
       ur_wrist_1_link:
         - "center": [-0.0, 0.0, -0.009]
           "radius": 0.05695
@@ -82,18 +48,6 @@ robot_cfg:
           "radius": 0.05491
         - "center": [0.001, -0.01, 0.0]
           "radius": 0.05627
-        - "center": [-0.001, -0.113, -0.007]
-          "radius": 0.08679
-        - "center": [0.002, 0.021, -0.001]
-          "radius": 0.05491
-        - "center": [-0.0, 0.0, -0.041]
-          "radius": 0.05695
-        - "center": [0.0, 0.0, -0.068]
-          "radius": 0.05695
-        - "center": [-0.018, -0.027, -0.007]
-          "radius": 0.03864
-        - "center": [0.014, -0.023, -0.003]
-          "radius": 0.04271
       ur_forearm_link:
         - "center": [-0.01, 0.002, 0.031]
           "radius": 0.07208
@@ -113,111 +67,49 @@ robot_cfg:
           "radius": 0.05155
         - "center": [-0.164, -0.0, 0.007]
           "radius": 0.05656
-        - "center": [-0.394, -0.004, 0.128]
-          "radius": 0.09462
-        - "center": [0.001, 0.003, 0.054]
-          "radius": 0.07509
-        - "center": [-0.354, 0.0, 0.008]
-          "radius": 0.05555
-        - "center": [-0.029, -0.003, 0.016]
-          "radius": 0.06757
-        - "center": [-0.231, -0.001, 0.005]
-          "radius": 0.05606
-        - "center": [-0.076, -0.002, 0.006]
-          "radius": 0.05906
-        - "center": [-0.395, -0.002, 0.02]
-          "radius": 0.05305
-        - "center": [0.008, -0.006, 0.054]
-          "radius": 0.06807
-        - "center": [-0.379, -0.0, -0.008]
-          "radius": 0.05305
-        - "center": [-0.004, -0.0, 0.037]
-          "radius": 0.07308
-        - "center": [-0.046, -0.002, 0.008]
-          "radius": 0.06657
       ur_upper_arm_link:
         - "center": [-0.416, -0.0, 0.143]
-          "radius": 0.07781
+          "radius": 0.08781
         - "center": [-0.015, 0.0, 0.134]
-          "radius": 0.07725
+          "radius": 0.08725
         - "center": [-0.14, 0.0, 0.138]
-          "radius": 0.06206
+          "radius": 0.07206
         - "center": [-0.285, -0.001, 0.139]
-          "radius": 0.0615
+          "radius": 0.0715
         - "center": [-0.376, 0.001, 0.138]
-          "radius": 0.07669
+          "radius": 0.08669
         - "center": [-0.222, 0.001, 0.139]
-          "radius": 0.06094
+          "radius": 0.07094
         - "center": [-0.055, 0.008, 0.14]
-          "radius": 0.06994
+          "radius": 0.07994
         - "center": [-0.001, -0.002, 0.143]
-          "radius": 0.07556
+          "radius": 0.08556
         - "center": [-0.418, 0.01, -0.007]
-          "radius": 0.10144
+          "radius": 0.11144
         - "center": [-0.442, -0.009, 0.114]
-          "radius": 0.05869
-        - "center": [-0.183, -0.0, 0.137]
-          "radius": 0.0615
-        - "center": [0.003, 0.003, 0.128]
-          "radius": 0.07387
-        - "center": [-0.098, -0.0, 0.139]
-          "radius": 0.0615
-        - "center": [-0.244, 0.0, 0.137]
-          "radius": 0.06206
-        - "center": [-0.442, 0.01, 0.163]
-          "radius": 0.057
-        - "center": [-0.434, 0.011, 0.117]
-          "radius": 0.06262
-        - "center": [-0.028, 0.0, 0.167]
-          "radius": 0.05925
-        - "center": [-0.315, -0.0, 0.137]
-          "radius": 0.0615
-        - "center": [-0.048, -0.01, 0.138]
-          "radius": 0.06769
-        - "center": [0.019, 0.009, 0.163]
-          "radius": 0.05644
+          "radius": 0.06869
       ur_shoulder_link:
         - "center": [-0.0, -0.004, 0.0]
-          "radius": 0.07776
+          "radius": 0.08776
         - "center": [0.001, -0.018, -0.006]
-          "radius": 0.07602
+          "radius": 0.08602
         - "center": [-0.003, -0.024, 0.016]
-          "radius": 0.0699
+          "radius": 0.0799
         - "center": [-0.002, 0.002, -0.008]
-          "radius": 0.07514
+          "radius": 0.08514
         - "center": [0.011, 0.016, 0.024]
-          "radius": 0.05768
-        - "center": [-0.013, 0.011, 0.024]
-          "radius": 0.05855
-        - "center": [0.026, 0.015, -0.036]
-          "radius": 0.04807
-        - "center": [-0.027, -0.044, -0.005]
-          "radius": 0.05069
-        - "center": [0.035, -0.001, 0.043]
-          "radius": 0.04196
-        - "center": [0.003, -0.032, -0.022]
-          "radius": 0.06204
+          "radius": 0.06768
       ur_base_link_inertia:
         - "center": [0.01, 0.001, 0.05]
-          "radius": 0.06933
+          "radius": 0.07933
         - "center": [-0.012, 0.001, 0.05]
-          "radius": 0.06933
+          "radius": 0.07933
         - "center": [-0.002, -0.03, 0.039]
-          "radius": 0.05747
+          "radius": 0.06747
         - "center": [-0.002, 0.023, 0.043]
-          "radius": 0.06295
+          "radius": 0.07295
         - "center": [0.037, 0.008, 0.032]
-          "radius": 0.052
-        - "center": [-0.045, -0.012, 0.026]
-          "radius": 0.04562
-        - "center": [-0.049, 0.016, 0.022]
-          "radius": 0.04197
-        - "center": [0.006, -0.026, 0.067]
-          "radius": 0.052
-        - "center": [0.051, -0.018, 0.02]
-          "radius": 0.04015
-        - "center": [0.014, 0.052, 0.02]
-          "radius": 0.04015
+          "radius": 0.062
       linear_rail:
         - "center": [-0.022, -0.038, -0.049]
           "radius": 0.1493
@@ -239,6 +131,26 @@ robot_cfg:
           "radius": 0.1493
         - "center": [-0.104, 0.056, -0.057]
           "radius": 0.14337
+        - "center": [0.102, 0.006, -0.048]
+          "radius": 0.14761
+        - "center": [0.036, 0.051, -0.05]
+          "radius": 0.1493
+        - "center": [-0.043, 0.048, -0.049]
+          "radius": 0.1493
+        - "center": [-0.041, -0.054, -0.054]
+          "radius": 0.14591
+        - "center": [0.037, 0.004, -0.049]
+          "radius": 0.1493
+        - "center": [-0.106, -0.058, -0.042]
+          "radius": 0.14168
+        - "center": [-0.102, 0.023, -0.048]
+          "radius": 0.14761
+        - "center": [0.056, -0.049, -0.049]
+          "radius": 0.1493
+        - "center": [0.117, -0.059, -0.033]
+          "radius": 0.1332
+        - "center": [-0.047, -0.006, -0.051]
+          "radius": 0.1493
       bs_link:
         - "center": [-0.137, 0.163, 0.074]
           "radius": 0.1259
@@ -472,7 +384,7 @@ robot_cfg:
       # joint_names: [] # List[str]
       joint_names: ['linear_rail', 'ur_base_link-base_link_inertia','ur_shoulder_pan_joint', 'ur_shoulder_lift_joint', 'ur_elbow_joint', 'ur_wrist_1_joint', 'ur_wrist_2_joint', 'ur_wrist_3_joint']
       # retract_config: null # List[float]
-      retract_config:  [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+      retract_config:  [0.0, 0.0, -1.57, 0.0, 0.0, 0.0, 0.0]
       # null_space_weight: null # List[str]
       # cspace_distance_weight: null # List[str]
       null_space_weight:  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
