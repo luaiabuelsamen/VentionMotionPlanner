@@ -10,8 +10,10 @@ graph TD;
         G --> F
         F -->|Motion Plan| E
     end
+```
 
 
+```mermaid
 graph TD;
     A[Home] -->|plan_single| B[Pre-pick]
     B -->|plan_single<br>Open gripper| C[Next object location]
@@ -19,8 +21,5 @@ graph TD;
     D -->|plan_single| E[Pre-place]
     E -->|plan_single<br>Detach object from robot<br>Open gripper| F[Place]
     F -->|plan_single_j| A
-
-
 ```
-
 
