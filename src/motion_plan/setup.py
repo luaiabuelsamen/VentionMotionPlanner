@@ -19,7 +19,7 @@ setup(
     maintainer_email='jetson@todo.todo',
     description='TODO: Package description',
     license='TODO: License declaration',
-    tests_require=['pytest'],
+    #tests_require=['pytest'],
     entry_points={
         'console_scripts': [
             'path_planner = motion_plan.path_planner:main',
