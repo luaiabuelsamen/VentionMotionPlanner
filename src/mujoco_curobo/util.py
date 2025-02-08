@@ -3,6 +3,54 @@ import numpy as np
 import shapely as sp # handle polygon
 from shapely import Polygon,LineString,Point # handle polygons
 from scipy.spatial.distance import cdist
+import mujoco
+
+def save_world_state(model, data, ignore_set=None, include_set=None):
+    stage = {}
+    for i in range(model.nbody):
+        body_name_start = model.name_bodyadr[i]
+        body_name = model.names[body_name_start:].split(b'\x00', 1)[0].decode('utf-8')
+        
+        if body_name and body_name in include_set:
+            body_pos = data.xpos[i]
+            body_quat = data.xquat[i]
+
+            for j in range(model.ngeom):
+                if model.geom_bodyid[j] == i:
+                    geom_type = model.geom_type[j]
+                    geom_size = model.geom_size[j]
+                    
+                    geom_name_start = model.name_geomadr[j]
+                    geom_name = model.names[geom_name_start:].split(b'\x00', 1)[0].decode('utf-8')
+                    pose = list(body_pos) + list(body_quat)
+                    if geom_type == mujoco.mjtGeom.mjGEOM_SPHERE:
+                        sphere_rad = geom_size[0]
+                        stage.setdefault('sphere', {})[body_name] = {
+                            "radius": sphere_rad,
+                            "pose": pose,
+                            "color": [0.5, 0.5, 0.5, 1.0]
+                        }
+                    elif geom_type == mujoco.mjtGeom.mjGEOM_BOX:
+                        # Here is where you adjust the position to the edge
+                        cube_size = [2 * s for s in geom_size[:3]]  # Convert half-size to full-size
+                        
+                        # Adjust the position to the edge (subtract half the size in z)
+                        pose[2] += cube_size[2] / 2   # Correct for edge alignment along z-axis
+                        
+                        stage.setdefault('cuboid', {})[body_name] = {
+                            "dims": cube_size,
+                            "pose": pose,
+                            "color": [0.8, 0.3, 0.3, 1.0]
+                        }
+                    elif geom_type == mujoco.mjtGeom.mjGEOM_MESH:
+                        mesh_file_start = model.name_meshadr[model.geom_dataid[j]]
+                        mesh_file = model.names[mesh_file_start:].split(b'\x00', 1)[0].decode('utf-8')
+                        stage.setdefault('mesh', {})[geom_name] = {
+                            "pose": pose,
+                            "file_path": mesh_file,
+                            "color": [0.7, 0.7, 0.7, 1.0]
+                        }
+    return stage
 
 def rot_mtx(deg):
     """

@@ -1,16 +1,50 @@
 <mujocoinclude>
-
     <worldbody>
-        <body name="obj_cylinder_01" pos="0.0 0.1 0.0">
+        <!-- Adding Free Cylinders -->
+        <body name="cylinder_1" pos="0.50 0.0 0.035">
             <joint type="free" />
-            <geom fromto="0.0 0.0 0.2  0.0 0.0 0.0" size="0.025"
-                density="500" friction="1 0.005 0.0001" type="cylinder" rgba="0.5 0.56 0.43 1" />
+            <geom size="0.025 0.035" density="500" friction="1.0 0.8 0.2" type="cylinder" rgba="0.3 0.5 0.8 1" />
+        </body>
+        
+        <body name="cylinder_2" pos="0.50 -0.20 0.035">
+            <joint type="free" />
+            <geom size="0.025 0.035" density="500" friction="1.0 0.8 0.2" type="cylinder" rgba="0.3 0.5 0.8 1" />
+        </body>
+        
+        <body name="cylinder_3" pos="0.50 0.20 0.035">
+            <joint type="free" />
+            <geom size="0.025 0.035" density="500" friction="1.0 0.8 0.2" type="cylinder" rgba="0.3 0.5 0.8 1" />
         </body>
 
-        <body name="red_platform" pos="0.75 0.0 0.01">
-            <geom size="0.1 0.1 0.01" density="0" friction="0.7 0.5 0.1" type="box" rgba="1 0 0 1" />
+        <body name="cylinder_4" pos="0.30 -0.20 0.035">
+            <joint type="free" />
+            <geom size="0.025 0.035" density="500" friction="1.0 0.8 0.2" type="cylinder" rgba="0.8 0.5 0.3 1" />
         </body>
 
+        <body name="cylinder_5" pos="0.30 0.0 0.035">
+            <joint type="free" />
+            <geom size="0.025 0.035" density="500" friction="1.0 0.8 0.2" type="cylinder" rgba="0.8 0.5 0.3 1" />
+        </body>
+
+        <body name="cylinder_6" pos="0.30 0.20 0.035">
+            <joint type="free" />
+            <geom size="0.025 0.035" density="500" friction="1.0 0.8 0.2" type="cylinder" rgba="0.8 0.5 0.3 1" />
+        </body>
+
+        <body name="cylinder_7" pos="0.70 -0.20 0.035">
+            <joint type="free" />
+            <geom size="0.025 0.035" density="500" friction="1.0 0.8 0.2" type="cylinder" rgba="0.5 0.7 0.2 1" />
+        </body>
+
+        <body name="cylinder_8" pos="0.70 0.0 0.035">
+            <joint type="free" />
+            <geom size="0.025 0.035" density="500" friction="1.0 0.8 0.2" type="cylinder" rgba="0.5 0.7 0.2 1" />
+        </body>
+
+        <body name="cylinder_9" pos="0.70 0.20 0.035">
+            <joint type="free" />
+            <geom size="0.025 0.035" density="500" friction="1.0 0.8 0.2" type="cylinder" rgba="0.5 0.7 0.2 1" />
+        </body>
+        
     </worldbody>
-
 </mujocoinclude>

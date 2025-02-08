@@ -47,7 +47,8 @@ class MuJoCoParserClass(object):
         self.full_xml_path    = os.path.abspath(os.path.join(os.getcwd(),self.rel_xml_path))
         self.model            = mujoco.MjModel.from_xml_path(self.full_xml_path)
         self.data             = mujoco.MjData(self.model)
-        self.dt               = self.model.opt.timestep
+        self.model.opt.timestep = 0.01
+        self.dt               = 0.01
         self.HZ               = int(1/self.dt)
         self.n_geom           = self.model.ngeom # number of geometries
         self.geom_names       = [mujoco.mj_id2name(self.model,mujoco.mjtObj.mjOBJ_GEOM,x)
