@@ -11,7 +11,11 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.path.join('share', package_name, 'meshes'), glob('meshes/*')),
+        (os.path.join('share', package_name, 'meshes'), glob('meshes/ur5e/collision/*')),
+        (os.path.join('share', package_name, 'meshes'), glob('meshes/ur5e/visual/*')),
+        (os.path.join('share', package_name, 'meshes'), glob('meshes/gripper/collision/*')),
+        (os.path.join('share', package_name, 'meshes'), glob('meshes/gripper/visual/*')),
+        (os.path.join('share', package_name, 'meshes'), glob('meshes/gantry/*')),
         (os.path.join('share', package_name, 'urdf'), glob('urdf/*')),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
         (os.path.join('share', package_name, 'cfg'), glob('cfg/*')),
@@ -23,7 +27,7 @@ setup(
     maintainer_email='hacchu@todo.todo',
     description='TODO: Package description',
     license='TODO: License declaration',
-    #tests_require=['pytest'],
+    tests_require=['pytest'],
     entry_points={
         'console_scripts': [
         ],

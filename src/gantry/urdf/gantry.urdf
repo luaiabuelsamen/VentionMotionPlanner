@@ -113,7 +113,53 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
+
+
   <!-- links: main serial chain -->
+  <link name="bs_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="1.1102E-16 2.7756E-16 0.043056"/>
+      <mass value="45"/>
+      <inertia ixx="0.9322" ixy="-1.4174E-16" ixz="5.421E-17" iyy="15.045" iyz="-3.9613E-16" izz="15.888"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://gantry/meshes/bs_link.STL"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.79216 0.81961 0.93333 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://gantry/meshes/bs_link.STL"/>
+      </geometry>
+    </collision>
+  </link>
+  <link name="linear_rail">
+    <inertial>
+      <origin rpy="0 0 0" xyz="-1.1102E-16 0 -0.05"/>
+      <mass value="7.5"/>
+      <inertia ixx="0.050938" ixy="-2.7586E-18" ixz="-2.0526E-18" iyy="0.063438" iyz="4.5831E-18" izz="0.1"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://gantry/meshes/linear_rail.STL"/>
+      </geometry>
+      <material name="">
+        <color rgba="0.79216 0.81961 0.93333 1"/>
+      </material>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="package://gantry/meshes/linear_rail.STL"/>
+      </geometry>
+    </collision>
+  </link>
   <link name="ur_base_link"/>
   <link name="ur_base_link_inertia">
     <visual>
@@ -270,7 +316,22 @@
       <inertia ixx="9.890410052167731e-05" ixy="0.0" ixz="0.0" iyy="9.890410052167731e-05" iyz="0.0" izz="0.0001321171875"/>
     </inertial>
   </link>
+
   <!-- joints: main serial chain -->
+  <joint name="linear_rail" type="prismatic">
+    <origin rpy="0 0 0" xyz="-0.0085429 0 0.125"/>
+    <parent link="bs_link"/>
+    <child link="linear_rail"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="0" lower="-0.5" upper="0.5" velocity="0"/>
+  </joint>
+  <!-- Define the connection between your gantry and the UR5e base -->
+  <joint name="linear_rail_to_ur_base" type="fixed">
+    <parent link="linear_rail"/>
+    <child link="ur_base_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+
   <joint name="ur_base_link-base_link_inertia" type="fixed">
     <parent link="ur_base_link"/>
     <child link="ur_base_link_inertia"/>
@@ -355,62 +416,5 @@
     <origin rpy="1.5707963267948966 0 1.5707963267948966" xyz="0 0 0"/>
     <parent link="ur_flange"/>
     <child link="ur_tool0"/>
-  </joint>
-  <link name="bs_link">
-    <inertial>
-      <origin rpy="0 0 0" xyz="1.1102E-16 2.7756E-16 0.043056"/>
-      <mass value="45"/>
-      <inertia ixx="0.9322" ixy="-1.4174E-16" ixz="5.421E-17" iyy="15.045" iyz="-3.9613E-16" izz="15.888"/>
-    </inertial>
-    <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <mesh filename="package://gantry/meshes/bs_link.STL"/>
-      </geometry>
-      <material name="">
-        <color rgba="0.79216 0.81961 0.93333 1"/>
-      </material>
-    </visual>
-    <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <mesh filename="package://gantry/meshes/bs_link.STL"/>
-      </geometry>
-    </collision>
-  </link>
-  <link name="linear_rail">
-    <inertial>
-      <origin rpy="0 0 0" xyz="-1.1102E-16 0 -0.05"/>
-      <mass value="7.5"/>
-      <inertia ixx="0.050938" ixy="-2.7586E-18" ixz="-2.0526E-18" iyy="0.063438" iyz="4.5831E-18" izz="0.1"/>
-    </inertial>
-    <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <mesh filename="package://gantry/meshes/linear_rail.STL"/>
-      </geometry>
-      <material name="">
-        <color rgba="0.79216 0.81961 0.93333 1"/>
-      </material>
-    </visual>
-    <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-        <mesh filename="package://gantry/meshes/linear_rail.STL"/>
-      </geometry>
-    </collision>
-  </link>
-  <joint name="linear_rail" type="prismatic">
-    <origin rpy="0 0 0" xyz="-0.0085429 0 0.125"/>
-    <parent link="bs_link"/>
-    <child link="linear_rail"/>
-    <axis xyz="1 0 0"/>
-    <limit effort="0" lower="-0.5" upper="0.5" velocity="0"/>
-  </joint>
-  <!-- Define the connection between your gantry and the UR5e base -->
-  <joint name="linear_rail_to_ur_base" type="fixed">
-    <parent link="linear_rail"/>
-    <child link="ur_base_link"/>
-    <origin rpy="0 0 0" xyz="0 0 0"/>
   </joint>
 </robot>

@@ -21,7 +21,7 @@ robot_cfg:
     asset_root_path: "src/gantry"
     
     base_link: "bs_link"
-    ee_link: "tool0"
+    ee_link: "ur_wrist_3_link"
     link_names: null
     lock_joints: null
     extra_links: null
@@ -368,7 +368,6 @@ robot_cfg:
       }
     self_collision_buffer: {'bs_link': 0,
       'linear_rail': 0,
-      'ur_shoulder_link': 0,
       'ur_upper_arm_link': 0, 
       'ur_forearm_link': 0, 
       'ur_wrist_1_link': 0, 
@@ -382,12 +381,12 @@ robot_cfg:
 
     cspace:
       # joint_names: [] # List[str]
-      joint_names: ['linear_rail', 'ur_base_link-base_link_inertia','ur_shoulder_pan_joint', 'ur_shoulder_lift_joint', 'ur_elbow_joint', 'ur_wrist_1_joint', 'ur_wrist_2_joint', 'ur_wrist_3_joint']
+      joint_names: ['linear_rail','ur_shoulder_pan_joint', 'ur_shoulder_lift_joint', 'ur_elbow_joint', 'ur_wrist_1_joint', 'ur_wrist_2_joint', 'ur_wrist_3_joint']
       # retract_config: null # List[float]
       retract_config:  [0.0, 0.0, -1.57, 0.0, 0.0, 0.0, 0.0]
       # null_space_weight: null # List[str]
       # cspace_distance_weight: null # List[str]
-      null_space_weight:  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
-      cspace_distance_weight: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      null_space_weight:  [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
+      cspace_distance_weight: [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0]
       max_jerk: 500.0
       max_acceleration: 15.0
