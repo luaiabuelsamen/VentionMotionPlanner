@@ -32,12 +32,36 @@ class StateMachine:
         return self.states[self.current_state_index]
 
 class UR5eMotionPlanner:
-    def __init__(self, xml_path: str, robot_config_file: str, world_config_file: str, 
-                 n_obstacle_cuboids: int = 20, n_obstacle_mesh: int = 2, tensor_device: str = "cuda:0"):
+    def __init__(self, xml_path: str, robot_config_file: str, world_config_file: str, tensor_device: str = "cuda:0"):
         np.set_printoptions(precision=2, suppress=True, linewidth=100)
 
         # Initialize MuJoCo and Curobo configurations
         self.env = MuJoCoParserClass(name='UR5e', rel_xml_path=xml_path)
+        self.init_curobo(robot_config_file, world_config_file)
+        self.sm = StateMachine()
+
+        # Set up initial positions of cubes and environment
+        self.obj_names = [body_name for body_name in self.env.body_names if body_name.startswith("cube")]
+        self.posns = deque([])
+        self.n_obj = len(self.obj_names)
+        for obj_name in self.obj_names:
+            jntadr = self.env.model.body(obj_name).jntadr[0]
+            self.posns.append((self.env.model.joint(jntadr).qpos0[:3], obj_name))
+        self.platform_xyz = np.random.uniform([-0.5, -0.5, 0.01], [-0.5, -0.5, 0.01])
+        self.env.model.body('rail').pos = np.array([0, 0, 0])
+        self.q_init_upright = np.array([0, -np.pi / 2, 0, 0, np.pi / 2, 0])
+        self.env.reset()
+        self.env.forward(q=self.q_init_upright, joint_idxs=self.env.idxs_forward)
+        self.cur_plan = None
+        self.place = [0.50, 0.0, 0.05]
+        
+        # Initialize the robot position
+        self.current_position = RoboJointState.from_position(torch.tensor(np.array([self.q_init_upright]), 
+                                                                        device=tensor_device, dtype=torch.float32))
+        self.cur_box_name = None
+    
+    def init_curobo(self, robot_config_file:str, world_config_file:str, tensor_device: str = "cuda:0", 
+                    n_obstacle_cuboids: int = 20, n_obstacle_mesh: int = 2, ):
         self.tensor_args = TensorDeviceType(device=tensor_device, dtype=torch.float32)
 
         self.robot_config_file = robot_config_file
@@ -48,31 +72,12 @@ class UR5eMotionPlanner:
             robot_config_file,
             interpolation_dt=0.01,
             world_model=self.world_config_inital,
-            # collision_checker_type=CollisionCheckerType.MESH,
+            collision_checker_type=CollisionCheckerType.MESH,
             collision_cache={"obb": self.n_obstacle_cuboids, "mesh": self.n_obstacle_mesh},
         )
         self.motion_gen = MotionGen(self.motion_gen_config)
         self.motion_gen.warmup()
-        self.sm = StateMachine()
-        # Set up initial positions and environment
-        self.obj_names = [body_name for body_name in self.env.body_names if body_name.startswith("cube")]
-        self.posns = deque([])
-        self.n_obj = len(self.obj_names)
-        for obj_name in self.obj_names:
-            jntadr = self.env.model.body(obj_name).jntadr[0]
-            self.posns.append((self.env.model.joint(jntadr).qpos0[:3], obj_name))
-        self.platform_xyz = np.random.uniform([-0.5, -0.5, 0.01], [-0.5, -0.5, 0.01])
-        self.env.model.body('base').pos = np.array([0, 0, 0])
-        self.q_init_upright = np.array([0, -np.pi / 2, 0, 0, np.pi / 2, 0])
-        self.env.reset()
-        self.env.forward(q=self.q_init_upright, joint_idxs=self.env.idxs_forward)
-        self.cur_plan = None
-        self.place = [0.50, 0.0, 0.05]
-        # Initialize the robot position
-        self.current_position = RoboJointState.from_position(torch.tensor(np.array([self.q_init_upright]), 
-                                                                        device=tensor_device, dtype=torch.float32))
-        self.cur_box_name = None
-
+        
     def update_curobo(self, new_wrld) -> None:
         world_config = WorldConfig.from_dict(new_wrld)
         # world_config.add_obstacle(self.world_config_inital.cuboid[0])
@@ -111,7 +116,7 @@ class UR5eMotionPlanner:
                     self.cur_box_name = None
             elif self.sm.current_state == "close":
                 curpos = self.get_curpos()
-                curpos = np.append(curpos, 1)
+                curpos = np.append(curpos, 0.7)
                 self.cur_plan =  np.tile(curpos, (100, 1))
                 self.sm.next_state()
                 # self.attach_obj(curpos, self.cur_box_name)
@@ -119,7 +124,6 @@ class UR5eMotionPlanner:
                 if self.posns:
                     print("Planning")
                     pick, self.cur_box_name = self.posns.popleft()
-                    pick[2] -= 0.035
                     self.plan_motion(pick)
                     self.sm.next_state()
             elif self.sm.current_state == "place":
@@ -139,10 +143,10 @@ class UR5eMotionPlanner:
         tick = 0
         while (self.env.get_sim_time() < 100.0) and self.env.is_viewer_alive():
             stage = save_world_state(self.env.model, self.env.data, include_set=self.obj_names)
-            self.update_curobo(stage)
+            # self.update_curobo(stage)
             if isinstance(self.cur_plan, np.ndarray):
                 if len(self.cur_plan[0]) != 6:
-                    self.env.step(ctrl=self.cur_plan[tick, :], ctrl_idxs=[0, 1, 2, 3, 4, 5, 6])
+                    self.env.step(ctrl=self.cur_plan[tick, :], ctrl_idxs=range(1, 8))
                 else:
                     self.env.step(ctrl=self.cur_plan[tick, :6], ctrl_idxs=self.env.idxs_forward)
                 tick += 1
@@ -152,7 +156,6 @@ class UR5eMotionPlanner:
                     print("Plan finished")
             self.step_plan()
             self.env.render()
-
 
     def attach_obj(
         self,
@@ -176,7 +179,7 @@ class UR5eMotionPlanner:
 
 # Usage example:
 if __name__ == "__main__":
-    xml_path = 'assets/ur5e/scene_ur5e_2f85_obj.xml'
+    xml_path = 'assets/ur5e/scene_ur5e_2f140_obj.xml'
     robot_config_file = "ur5e_robotiq_2f_140.yml"
     world_config_file = "collision_table.yml"
     
