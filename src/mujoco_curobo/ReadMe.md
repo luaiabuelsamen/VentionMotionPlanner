@@ -16,33 +16,40 @@ graph TD;
 ```mermaid
 flowchart TD
     A[Initialize UR5eMotionPlanner] --> B[Setup MuJoCo simulation and robot config]
-    B --> C[Initialize state machine with states open, pick, close, place]
+    B --> C[Initialize State Machine]
     C --> D{Simulation Loop}
-    D --> E[State open]
+    
+    D --> E[State: Open Gripper]
     E --> F[Prepare robot to open the gripper]
-    F --> G[Transition to next state pick]
-    G --> H[State pick]
+    F --> G[Transition to next state: Pick]
+    
+    D --> H[State: Pick Object]
     H --> I[Plan motion to pick object]
-    I --> J[Transition to next state close]
-    J --> K[State close]
+    I --> J[Transition to next state: Close Gripper]
+    
+    D --> K[State: Close Gripper]
     K --> L[Close the gripper]
-    L --> M[Transition to next state place]
-    M --> N[State place]
+    L --> M[Transition to next state: Place Object]
+    
+    D --> N[State: Place Object]
     N --> O[Plan motion to place object]
-    O --> P[Transition to next state open]
-    P --> D
+    O --> P[Transition to next state: Open Gripper]
+    
     D --> Q[Motion Planning]
     Q --> R[Use MotionGen to plan robot trajectory]
-    R --> S[Check if planning successful]
+    R --> S[Check if planning is successful]
     S -->|Yes| T[Execute the motion plan in simulation]
-    S -->|No| U[Exit or handle error]
+    S -->|No| U[Handle planning error or exit]
+    
     T --> V[Update simulation state]
     V --> W[Render the simulation]
-    W --> D
+    
     D --> X[Object Handling]
     X --> Y[Attach or detach objects during pick and close]
-    Y --> D
+    
     D --> Z[End of Simulation or Plan Completion]
-
+    
+    W --> D
+    Y --> D
 ```
 
