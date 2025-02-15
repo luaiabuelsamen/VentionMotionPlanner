@@ -25,9 +25,9 @@ flowchart TD
         E[State open] --> F[Prepare robot to open the gripper]
         G --> H[State pick]
         H --> I[Plan motion to pick object]
-        J --> K[State close]
+        I --> K[State close]
         K --> L[Close the gripper]
-        M --> N[State place]
+        L --> N[State place]
         N --> O[Plan motion to place object]
     end
 
