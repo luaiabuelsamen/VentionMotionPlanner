@@ -23,7 +23,7 @@ flowchart TD
     subgraph states [Robot State Machine]
         direction TB
         E[State open] --> F[Prepare robot to open the gripper]
-        G --> H[State pick]
+        F --> H[State pick]
         H --> I[Plan motion to pick object]
         I --> K[State close]
         K --> L[Close the gripper]
