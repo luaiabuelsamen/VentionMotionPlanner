@@ -42,17 +42,11 @@ env.update_viewer(azimuth=66.08, distance=3.0, elevation=-50, lookat=[0.4, 0.18,
                   contactwidth=0.05, contactheight=0.05, contactrgba=np.array([1, 0, 0, 1]),
                   VIS_JOINT=True, jointlength=0.25, jointwidth=0.05, jointrgba=[0.2, 0.6, 0.8, 0.6])
 tick = 0
-try:
-    while (env.get_sim_time() < 100.0) and env.is_viewer_alive():
-        tick += 1
-        # for pos in joint_positions:
-        #     env.step(ctrl=pos, ctrl_idxs=[0, 1, 2, 3, 4, 5, 6])
 
-        env.render()
-        # break
+while (env.get_sim_time() < 100.0) and env.is_viewer_alive():
+    tick += 1
+    # for pos in joint_positions:
+    #     env.step(ctrl=pos, ctrl_idxs=[0, 1, 2, 3, 4, 5, 6])
 
-except KeyboardInterrupt:
-    print("Simulation interrupted.")
-
-finally:
-    print("Exporter process finished.")
+    env.render()
+    # break

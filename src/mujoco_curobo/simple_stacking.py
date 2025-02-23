@@ -143,7 +143,7 @@ class UR5eMotionPlanner:
         tick = 0
         while (self.env.get_sim_time() < 100.0) and self.env.is_viewer_alive():
             stage = save_world_state(self.env.model, self.env.data, include_set=self.obj_names)
-            # self.update_curobo(stage)
+            self.update_curobo(stage)
             if isinstance(self.cur_plan, np.ndarray):
                 if len(self.cur_plan[0]) != 6:
                     self.env.step(ctrl=self.cur_plan[tick, :], ctrl_idxs=range(1, 8))

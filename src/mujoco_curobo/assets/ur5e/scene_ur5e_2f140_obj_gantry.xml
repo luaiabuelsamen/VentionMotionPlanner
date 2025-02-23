@@ -1,0 +1,12 @@
+<mujoco model="ur5e scene">
+  
+  <!-- UR5e -->
+  <include file="./ur5e_2f140_x.xml"/>
+  
+  <!-- Cylinder objects -->
+  <!-- <include file="../object/obj_cube.xml" /> -->
+
+  <!-- Floor and Sky -->
+  <include file="../object/floor_sky.xml" />
+
+</mujoco>
