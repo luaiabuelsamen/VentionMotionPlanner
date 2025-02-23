@@ -4,9 +4,11 @@ import shapely as sp # handle polygon
 from shapely import Polygon,LineString,Point # handle polygons
 from scipy.spatial.distance import cdist
 import mujoco
+from curobo.geom.types import Mesh
 
 def save_world_state(model, data, ignore_set=None, include_set=None):
     stage = {}
+    meshes = []
     for i in range(model.nbody):
         body_name_start = model.name_bodyadr[i]
         body_name = model.names[body_name_start:].split(b'\x00', 1)[0].decode('utf-8')
@@ -23,12 +25,12 @@ def save_world_state(model, data, ignore_set=None, include_set=None):
                     geom_name_start = model.name_geomadr[j]
                     geom_name = model.names[geom_name_start:].split(b'\x00', 1)[0].decode('utf-8')
                     pose = list(body_pos) + list(body_quat)
+                    
                     if geom_type == mujoco.mjtGeom.mjGEOM_SPHERE:
                         sphere_rad = geom_size[0]
                         stage.setdefault('sphere', {})[body_name] = {
                             "radius": sphere_rad,
                             "pose": pose,
-                            "color": [0.5, 0.5, 0.5, 1.0]
                         }
                     elif geom_type == mujoco.mjtGeom.mjGEOM_BOX:
                         # Here is where you adjust the position to the edge
@@ -40,17 +42,30 @@ def save_world_state(model, data, ignore_set=None, include_set=None):
                         stage.setdefault('cuboid', {})[body_name] = {
                             "dims": cube_size,
                             "pose": pose,
-                            "color": [0.8, 0.3, 0.3, 1.0]
                         }
                     elif geom_type == mujoco.mjtGeom.mjGEOM_MESH:
-                        mesh_file_start = model.name_meshadr[model.geom_dataid[j]]
-                        mesh_file = model.names[mesh_file_start:].split(b'\x00', 1)[0].decode('utf-8')
-                        stage.setdefault('mesh', {})[geom_name] = {
-                            "pose": pose,
-                            "file_path": mesh_file,
-                            "color": [0.7, 0.7, 0.7, 1.0]
-                        }
-    return stage
+                        print(pose)
+                        mesh_id = model.geom_dataid[j]
+                        
+                        # Extract vertices
+                        vert_start = model.mesh_vertadr[mesh_id]
+                        vert_end = vert_start + model.mesh_vertnum[mesh_id]
+                        vertices = model.mesh_vert[vert_start:vert_end].reshape(-1, 3).tolist()
+
+                        # Extract faces
+                        face_start = model.mesh_faceadr[mesh_id]
+                        face_end = face_start + model.mesh_facenum[mesh_id]
+                        faces = model.mesh_face[face_start:face_end].reshape(-1, 3).tolist()
+
+                        # Create Mesh object
+                        mesh_obj = Mesh(
+                            pose=pose,
+                            name=geom_name,
+                            vertices=vertices,
+                            faces=faces,
+                        )
+                        meshes.append(mesh_obj)
+    return stage, meshes
 
 def rot_mtx(deg):
     """

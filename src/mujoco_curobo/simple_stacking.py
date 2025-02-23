@@ -80,7 +80,7 @@ class UR5eMotionPlanner:
         
     def update_curobo(self, new_wrld) -> None:
         world_config = WorldConfig.from_dict(new_wrld)
-        # world_config.add_obstacle(self.world_config_inital.cuboid[0])
+        world_config.add_obstacle(self.world_config_inital.cuboid[0])
         self.motion_gen.update_world(world_config)
 
     def plan_motion(self, goal_position):

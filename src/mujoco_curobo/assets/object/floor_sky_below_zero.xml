@@ -22,7 +22,7 @@
     <!-- Light and floor -->
     <worldbody>
         <light pos="0 0 3" dir="0 0 -1" directional="true" diffuse="1 1 1"/>
-        <geom name="floor" pos = "0.0 0.0 -0.1" size="0 0 0.05" type="plane" material="groundplane" />
+        <geom name="floor" pos = "0.0 0.0 -0.12" size="0 0 0.05" type="plane" material="groundplane" />
     </worldbody>
 
 </mujoco>
