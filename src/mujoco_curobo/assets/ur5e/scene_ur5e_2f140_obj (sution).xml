@@ -1,0 +1,19 @@
+<mujoco model="ur5e scene">
+  
+  
+  
+  <include file="./ur5e_suction.xml" />
+
+  
+  <include file="../object/obj_cube.xml" />
+
+  
+  <include file="../object/floor_sky.xml" />
+
+  <equality>
+    <weld name="weld_cube1" body1="vacuum_gripper" body2="cube_1" active="true" />
+    <weld name="weld_cube2" body1="vacuum_gripper" body2="cube_2" active="true" />
+    <weld name="weld_cube3" body1="vacuum_gripper" body2="cube_3" active="true" />
+  </equality>
+
+</mujoco>
