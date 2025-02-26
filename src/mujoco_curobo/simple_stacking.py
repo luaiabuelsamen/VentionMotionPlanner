@@ -47,13 +47,14 @@ class UR5eMotionPlanner:
         for obj_name in self.obj_names:
             jntadr = self.env.model.body(obj_name).jntadr[0]
             self.posns.append((self.env.model.joint(jntadr).qpos0[:3], obj_name))
+        print(self.posns)
         self.platform_xyz = np.random.uniform([-0.5, -0.5, 0.01], [-0.5, -0.5, 0.01])
         self.env.model.body('rail').pos = np.array([0, 0, 0])
         self.q_init_upright = np.array([0, -np.pi / 2, 0, 0, np.pi / 2, 0])
         self.env.reset()
         self.env.forward(q=self.q_init_upright, joint_idxs=self.env.idxs_forward)
         self.cur_plan = None
-        self.place = [0.50, 0.0, 0.05]
+        self.place = [0.50, 0.0, 0.15]
         
         # Initialize the robot position
         self.current_position = RoboJointState.from_position(torch.tensor(np.array([self.q_init_upright]), 
@@ -80,10 +81,11 @@ class UR5eMotionPlanner:
         
     def update_curobo(self, new_wrld) -> None:
         world_config = WorldConfig.from_dict(new_wrld)
-        world_config.add_obstacle(self.world_config_inital.cuboid[0])
+        # world_config.add_obstacle(self.world_config_inital.cuboid[0])
         self.motion_gen.update_world(world_config)
 
     def plan_motion(self, goal_position):
+        print(f"plan generated for {goal_position}")
         goal_pose = Pose(
             position=self.tensor_args.to_device([goal_position]),
             quaternion=self.tensor_args.to_device([[0, 0, -1, 0]])  
@@ -110,26 +112,29 @@ class UR5eMotionPlanner:
                 curpos = self.get_curpos()
                 curpos = np.append(curpos, 0)
                 self.cur_plan =  np.tile(curpos, (100, 1))
+                self.cur_plan[:, -1] = np.linspace(1, 0, 100)
                 self.sm.next_state()
                 if self.cur_box_name:
                     # self.detach_obj()
                     self.cur_box_name = None
             elif self.sm.current_state == "close":
                 curpos = self.get_curpos()
-                curpos = np.append(curpos, 0.7)
+                curpos = np.append(curpos, 1)
                 self.cur_plan =  np.tile(curpos, (100, 1))
+                self.cur_plan[:, -1] = np.linspace(0, 1, 100)
                 self.sm.next_state()
                 # self.attach_obj(curpos, self.cur_box_name)
             elif self.sm.current_state == "pick":
                 if self.posns:
                     print("Planning")
                     pick, self.cur_box_name = self.posns.popleft()
+                    pick[2] += 0.08
                     self.plan_motion(pick)
                     self.sm.next_state()
             elif self.sm.current_state == "place":
                 print("Planning")
                 self.plan_motion(self.place)
-                self.place[2] += 0.06
+                self.place[2] += 0.15
                 self.sm.next_state()
 
     def run_simulation(self):
@@ -142,11 +147,11 @@ class UR5eMotionPlanner:
                                VIS_JOINT=True, jointlength=0.25, jointwidth=0.05, jointrgba=[0.2, 0.6, 0.8, 0.6])
         tick = 0
         while (self.env.get_sim_time() < 100.0) and self.env.is_viewer_alive():
-            stage = save_world_state(self.env.model, self.env.data, include_set=self.obj_names)
-            self.update_curobo(stage)
+            stage, _ = save_world_state(self.env.model, self.env.data, include_set=self.obj_names)
+            # self.update_curobo(stage)
             if isinstance(self.cur_plan, np.ndarray):
                 if len(self.cur_plan[0]) != 6:
-                    self.env.step(ctrl=self.cur_plan[tick, :], ctrl_idxs=range(1, 8))
+                    self.env.step(ctrl=self.cur_plan[tick, :], ctrl_idxs=range(0, 7))
                 else:
                     self.env.step(ctrl=self.cur_plan[tick, :6], ctrl_idxs=self.env.idxs_forward)
                 tick += 1
@@ -179,8 +184,8 @@ class UR5eMotionPlanner:
 
 # Usage example:
 if __name__ == "__main__":
-    xml_path = 'assets/ur5e/scene_ur5e_2f140_obj.xml'
-    robot_config_file = "ur5e_robotiq_2f_140.yml"
+    xml_path = 'assets/ur5e/scene_ur5e_2f140_obj (sution).xml'
+    robot_config_file = "ur5e.yml"
     world_config_file = "collision_table.yml"
     
     motion_planner = UR5eMotionPlanner(xml_path=xml_path, 

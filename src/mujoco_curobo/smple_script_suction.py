@@ -11,7 +11,7 @@ import time
 from mujoco_parser import MuJoCoParserClass
 
 # Load MuJoCo environment
-xml_path = './assets/ur5e/scene_ur5e_2f140_obj.xml'
+xml_path = './assets/ur5e/scene_ur5e_2f140_obj (sution).xml'
 env = MuJoCoParserClass(name='UR5e Vacuum Gripper', rel_xml_path=xml_path, VERBOSE=True)
 
 # Initialize viewer

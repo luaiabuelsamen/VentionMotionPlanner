@@ -35,7 +35,7 @@ class StateMachine:
 class UR5eMotionPlanner:
     def __init__(self, xml_path: str, robot_config_file: str, world_config_file: str, tensor_device: str = "cuda:0"):
         np.set_printoptions(precision=2, suppress=True, linewidth=100)
-        self.xml_path = 'assets/ur5e/scene_ur5e_2f140_obj.xml'  # Store the XML path
+        self.xml_path = xml_path  # Store the XML path
 
         # Initialize MuJoCo and Curobo configurations
         self.env = MuJoCoParserClass(name='UR5e', rel_xml_path=xml_path)
@@ -94,6 +94,7 @@ class UR5eMotionPlanner:
         self.motion_gen.update_world(world_config)
 
     def plan_motion(self, goal_position, approach_offset=0.0):
+        goal_position[2] += 0.05
         # Add gripper offset and any approach offset for pre-grasp positioning
         offset = np.array([0.0, 0.0, 0.13])
         goal_position = np.array(goal_position) + offset
@@ -118,75 +119,75 @@ class UR5eMotionPlanner:
     def get_curpos(self):
         return np.array([self.env.data.qpos[self.env.model.joint(joint).qposadr[0]] for joint in self.env.rev_joint_names[:6]])
 
-    def activate_weld(self, cube_name: str):
-        """
-        Activate welding constraint between vacuum gripper and specified cube.
-        Updates both MuJoCo model and XML file.
-        """
-        # Update MuJoCo model state
-        weld_name = f"weld_{cube_name}"
-        weld_id = mujoco.mj_name2id(self.env.model, mujoco.mjtObj.mjOBJ_EQUALITY, weld_name)
+    # def activate_weld(self, cube_name: str):
+    #     """
+    #     Activate welding constraint between vacuum gripper and specified cube.
+    #     Updates both MuJoCo model and XML file.
+    #     """
+    #     # Update MuJoCo model state
+    #     weld_name = f"weld_{cube_name}"
+    #     weld_id = mujoco.mj_name2id(self.env.model, mujoco.mjtObj.mjOBJ_EQUALITY, weld_name)
         
-        if weld_id != -1:
-            # Update MuJoCo model
-            self.env.model.eq_active0[weld_id] = 1
+    #     if weld_id != -1:
+    #         # Update MuJoCo model
+    #         self.env.model.eq_active0[weld_id] = 1
             
-            try:
-                # Update XML file
-                tree = ET.parse(self.xml_path)
-                root = tree.getroot()
+    #         try:
+    #             # Update XML file
+    #             tree = ET.parse(self.xml_path)
+    #             root = tree.getroot()
                 
-                # Find and update the weld constraint
-                for equality in root.findall('.//equality'):
-                    for weld in equality.findall('weld'):
-                        if weld.get('name') == weld_name:
-                            current_state = weld.get('active')
-                            print(f"Current weld state for {weld_name}: {current_state}")
-                            weld.set('active', 'true')
-                            print(f"Updated weld state for {weld_name} to: true")
+    #             # Find and update the weld constraint
+    #             for equality in root.findall('.//equality'):
+    #                 for weld in equality.findall('weld'):
+    #                     if weld.get('name') == weld_name:
+    #                         current_state = weld.get('active')
+    #                         print(f"Current weld state for {weld_name}: {current_state}")
+    #                         weld.set('active', 'true')
+    #                         print(f"Updated weld state for {weld_name} to: true")
                 
-                # Save the modified XML
-                tree.write(self.xml_path)
-                print(f"Welding activated for {cube_name}")
-            except Exception as e:
-                print(f"Error updating XML file: {e}")
-        else:
-            print(f"Error: Weld constraint '{weld_name}' not found!")
+    #             # Save the modified XML
+    #             tree.write(self.xml_path)
+    #             print(f"Welding activated for {cube_name}")
+    #         except Exception as e:
+    #             print(f"Error updating XML file: {e}")
+    #     else:
+    #         print(f"Error: Weld constraint '{weld_name}' not found!")
 
-    def deactivate_weld(self, cube_name: str):
-        """
-        Deactivate welding constraint.
-        Updates both MuJoCo model and XML file.
-        """
-        # Update MuJoCo model state
-        weld_name = f"weld_{cube_name}"
-        weld_id = mujoco.mj_name2id(self.env.model, mujoco.mjtObj.mjOBJ_EQUALITY, weld_name)
+    # def deactivate_weld(self, cube_name: str):
+    #     """
+    #     Deactivate welding constraint.
+    #     Updates both MuJoCo model and XML file.
+    #     """
+    #     # Update MuJoCo model state
+    #     weld_name = f"weld_{cube_name}"
+    #     weld_id = mujoco.mj_name2id(self.env.model, mujoco.mjtObj.mjOBJ_EQUALITY, weld_name)
         
-        if weld_id != -1:
-            # Update MuJoCo model
-            self.env.model.eq_active0[weld_id] = 0
+    #     if weld_id != -1:
+    #         # Update MuJoCo model
+    #         self.env.model.eq_active0[weld_id] = 0
             
-            try:
-                # Update XML file
-                tree = ET.parse(self.xml_path)
-                root = tree.getroot()
+    #         try:
+    #             # Update XML file
+    #             tree = ET.parse(self.xml_path)
+    #             root = tree.getroot()
                 
-                # Find and update the weld constraint
-                for equality in root.findall('.//equality'):
-                    for weld in equality.findall('weld'):
-                        if weld.get('name') == weld_name:
-                            current_state = weld.get('active')
-                            print(f"Current weld state for {weld_name}: {current_state}")
-                            weld.set('active', 'false')
-                            print(f"Updated weld state for {weld_name} to: false")
+    #             # Find and update the weld constraint
+    #             for equality in root.findall('.//equality'):
+    #                 for weld in equality.findall('weld'):
+    #                     if weld.get('name') == weld_name:
+    #                         current_state = weld.get('active')
+    #                         print(f"Current weld state for {weld_name}: {current_state}")
+    #                         weld.set('active', 'false')
+    #                         print(f"Updated weld state for {weld_name} to: false")
                 
-                # Save the modified XML
-                tree.write(self.xml_path)
-                print(f"Welding deactivated for {cube_name}")
-            except Exception as e:
-                print(f"Error updating XML file: {e}")
-        else:
-            print(f"Error: Weld constraint '{weld_name}' not found!")
+    #             # Save the modified XML
+    #             tree.write(self.xml_path)
+    #             print(f"Welding deactivated for {cube_name}")
+    #         except Exception as e:
+    #             print(f"Error updating XML file: {e}")
+    #     else:
+    #         print(f"Error: Weld constraint '{weld_name}' not found!")
 
     def step_plan(self):
         if not isinstance(self.cur_plan, np.ndarray):
@@ -202,7 +203,8 @@ class UR5eMotionPlanner:
                 self.plan_motion(self.pick_pos)  # Move to exact position
                 # Extract cube number from name (e.g., "cube_1" -> "cube1")
                 cube_name = self.cur_box_name.replace("_", "")
-                self.activate_weld(cube_name)
+                # self.activate_weld(cube_name)
+                #APPEND 1
                 self.sm.next_state()
                 
             elif self.sm.current_state == "lift":
@@ -225,7 +227,8 @@ class UR5eMotionPlanner:
                 print("Placing")
                 # Extract cube number from name (e.g., "cube_1" -> "cube1")
                 cube_name = self.cur_box_name.replace("_", "")
-                self.deactivate_weld(cube_name)
+                # self.deactivate_weld(cube_name)
+                #APPEND 0
                 self.place[2] += 0.06  # Increment height for next cube
                 curpos = self.get_curpos()
                 self.cur_plan = np.tile(curpos, (100, 1))  # Hold position briefly
@@ -243,7 +246,7 @@ class UR5eMotionPlanner:
         tick = 0
         while (self.env.get_sim_time() < 100.0) and self.env.is_viewer_alive():
             stage = save_world_state(self.env.model, self.env.data, include_set=self.obj_names)
-            self.update_curobo(stage)
+            # self.update_curobo(stage)
             
             if isinstance(self.cur_plan, np.ndarray):
                 self.env.step(ctrl=self.cur_plan[tick, :6], ctrl_idxs=self.env.idxs_forward)
@@ -274,7 +277,7 @@ class UR5eMotionPlanner:
 
 # Usage example:
 if __name__ == "__main__":
-    xml_path = 'assets/ur5e/scene_ur5e_2f140_obj.xml'
+    xml_path = 'assets/ur5e/scene_ur5e_2f140_obj (sution).xml'
     robot_config_file = "ur5e.yml"
     world_config_file = "collision_table.yml"
     

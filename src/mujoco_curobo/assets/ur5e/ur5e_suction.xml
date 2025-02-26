@@ -38,6 +38,14 @@
           <geom type="mesh" group="3"/>
       </default>
     </default>
+    <default class="active_adhesion">
+      <!--
+        Geoms in the active_adhesion class are "inflated" with a margin of 1cm, but contacts are
+        activated only at a depth gap of 1cm, leading to a layer of inactive contacts at a 1cm
+        distance from the surface. However the contacts can be used by the adhesion actuator.
+      -->
+      <geom rgba=".8 .5 .5 1" margin=".1" gap=".1"/>
+    </default>
   </default>
 
   <asset>
@@ -86,7 +94,6 @@
   <worldbody>
      <body name="rail" pos="0 0 0">
       <body name="ur5e/base" pos="0 0 0" quat="1 0 0 0" childclass="ur5e">
-        <joint name="linear_rail_joint" type="slide" axis="1 0 0"/>
         <inertial mass="4" pos="0 0 0" diaginertia="0.00443333156 0.00443333156 0.0072"/>
         <geom mesh="base_0" material="black" class="visual"/>
         <geom mesh="base_1" material="jointgray" class="visual"/>
@@ -144,15 +151,13 @@
                     <geom class="eef_mesh/gripper/collision" pos="0 0.08 0" quat="1 1 0 0" size="0.04 0.02"/>
                     <body name="attachment" pos="0 0.1 0" quat="-1 1 1 1">
                       <site name="attachment_site" rgba="1 0 0 1" size="0.01" group="1"/>
-                        <body name="vacuum_gripper" pos="0 0 0">
-                          <joint name="vacuum_gripper" type="slide" axis="0 0 1" range="0 0.05"/>
-                          <geom name="vacuum_base" type="box" size="0.05 0.05 0.05" material="black" contype="1" conaffinity="1" class="visual"/>
-                          <body name="suction_pad" pos="0 0 0.03"> 
-                                  <geom type="cylinder" size="0.03 0.005" material="gray" class="visual" />
-                                  <site name="grip_site" pos="0 0 -0.025" size="0.01" rgba="1 0 0 1"/>
-                          </body>
-
+                      <body name="vacuum_gripper" pos="0 0 0">
+                        <body name="suction_pad" pos="0 0 0.01" childclass="active_adhesion"> 
+                          <geom name="suction_surface" type="box" size="0.05 0.05 0.01" material="gray"/>
+                          <!-- <joint name="arm3" damping=".01" pos="0 0 0"/> -->
+                          <site name="force_sensor" pos="0 0 0" size="0.01" rgba="0 1 0 0"/>
                         </body>
+                      </body>
                     </body>
                   </body>
                 </body>
@@ -190,15 +195,19 @@
 
 
   <actuator>
-    <position class="position" name="linear_rail_position" joint="linear_rail_joint"/>
     <position class="position" name="shoulder_pan_position" joint="shoulder_pan_joint"/>
     <position class="position" name="shoulder_lift_position" joint="shoulder_lift_joint"/>
     <position class="position_limited" name="elbow_position" joint="elbow_joint"/>
     <position class="position_small" name="wrist_1_position" joint="wrist_1_joint"/>
     <position class="position_small" name="wrist_2_position" joint="wrist_2_joint"/>
     <position class="position_small" name="wrist_3_position" joint="wrist_3_joint"/>
-    <!-- <position name="fingers_actuator" joint="finger_joint" ctrlrange="0 1.0" kp="30"/> -->
+    <adhesion name="suction" body="suction_pad" ctrlrange="0 1" gain="5"/>
   </actuator>
+
+  <sensor>
+    <force site="force_sensor"/>
+  </sensor>
+
 </mujoco>
 
 
