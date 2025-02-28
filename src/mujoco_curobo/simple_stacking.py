@@ -20,13 +20,15 @@ from collections import deque
 
 class StateMachine:
     def __init__(self):
-        self.states = ["open", "pick", "close", "place"]
+        self.states = ["open", "pick", "close", "place","wait"]
         self.current_state_index = 0
 
     def next_state(self):
         self.current_state_index = (self.current_state_index + 1) % len(self.states)
+        print(self.states[self.current_state_index])
         return self.states[self.current_state_index]
-    
+    def wait(self):
+        self.current_state_index = 4
     @property
     def current_state(self):
         return self.states[self.current_state_index]
@@ -54,7 +56,7 @@ class UR5eMotionPlanner:
         self.env.reset()
         self.env.forward(q=self.q_init_upright, joint_idxs=self.env.idxs_forward)
         self.cur_plan = None
-        self.place = [0.50, 0.0, 0.15]
+        self.place = [-0.50, 0.0, 0.2]
         
         # Initialize the robot position
         self.current_position = RoboJointState.from_position(torch.tensor(np.array([self.q_init_upright]), 
@@ -111,8 +113,9 @@ class UR5eMotionPlanner:
             if self.sm.current_state == "open":
                 curpos = self.get_curpos()
                 curpos = np.append(curpos, 0)
-                self.cur_plan =  np.tile(curpos, (100, 1))
-                self.cur_plan[:, -1] = np.linspace(1, 0, 100)
+                self.cur_plan =  np.tile(curpos, (200, 1))
+                self.cur_plan[:50, -1] = 1
+                self.cur_plan[50:, -1] = np.linspace(1, 0, 150)
                 self.sm.next_state()
                 if self.cur_box_name:
                     # self.detach_obj()
@@ -120,19 +123,21 @@ class UR5eMotionPlanner:
             elif self.sm.current_state == "close":
                 curpos = self.get_curpos()
                 curpos = np.append(curpos, 1)
-                self.cur_plan =  np.tile(curpos, (100, 1))
-                self.cur_plan[:, -1] = np.linspace(0, 1, 100)
+                self.cur_plan =  np.tile(curpos, (200, 1))
+                self.cur_plan[:50, -1] = 0
+                self.cur_plan[50:, -1] = np.linspace(0, 1, 150)
+                print(self.cur_plan[: , 6])
+                # self.sm.wait()
                 self.sm.next_state()
                 # self.attach_obj(curpos, self.cur_box_name)
             elif self.sm.current_state == "pick":
                 if self.posns:
-                    print("Planning")
                     pick, self.cur_box_name = self.posns.popleft()
-                    pick[2] += 0.08
+                    pick[2] += 0.09
                     self.plan_motion(pick)
+                    print(self.cur_plan)
                     self.sm.next_state()
             elif self.sm.current_state == "place":
-                print("Planning")
                 self.plan_motion(self.place)
                 self.place[2] += 0.15
                 self.sm.next_state()
@@ -149,6 +154,7 @@ class UR5eMotionPlanner:
         while (self.env.get_sim_time() < 100.0) and self.env.is_viewer_alive():
             stage, _ = save_world_state(self.env.model, self.env.data, include_set=self.obj_names)
             # self.update_curobo(stage)
+            # print(np.array([self.env.data.qpos[6]]))
             if isinstance(self.cur_plan, np.ndarray):
                 if len(self.cur_plan[0]) != 6:
                     self.env.step(ctrl=self.cur_plan[tick, :], ctrl_idxs=range(0, 7))

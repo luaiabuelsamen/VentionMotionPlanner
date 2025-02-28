@@ -58,6 +58,8 @@
     <mesh file="wrist2_1.obj"/>
     <mesh file="wrist2_2.obj"/>
     <mesh file="wrist3.obj"/>
+    <mesh file="vention_cad.STL" name= "venemesh"/>
+
   </asset>
 
   <!-- UR5e joints and links -->
@@ -65,7 +67,7 @@
     <light name="spotlight" mode="targetbodycom" target="wrist_2_link" pos="0 -1 2"/>
     <body name="base" pos="0 0 0" quat="1 0 0 0">
       <inertial mass="4.0" pos="0 0 0" diaginertia="0.00443333156 0.00443333156 0.0072"/>
-      <geom mesh="base_0" material="black" class="visual"/>
+      <geom mesh="venemesh" material="black" class="visual"/>
       <geom mesh="base_1" material="jointgray" class="visual"/>
       <body name="shoulder_link" pos="0 0 0.163">
         <inertial mass="3.7" pos="0 0 0" diaginertia="0.0102675 0.0102675 0.00666"/>

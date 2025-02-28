@@ -153,8 +153,7 @@
                       <site name="attachment_site" rgba="1 0 0 1" size="0.01" group="1"/>
                       <body name="vacuum_gripper" pos="0 0 0">
                         <body name="suction_pad" pos="0 0 0.01" childclass="active_adhesion"> 
-                          <geom name="suction_surface" type="box" size="0.05 0.05 0.01" material="gray"/>
-                          <!-- <joint name="arm3" damping=".01" pos="0 0 0"/> -->
+                          <geom name="suction_surface" type="box" size="0.05 0.05 0.005" material="gray"/>
                           <site name="force_sensor" pos="0 0 0" size="0.01" rgba="0 1 0 0"/>
                         </body>
                       </body>
@@ -168,31 +167,6 @@
       </body>
     </body>
   </worldbody>
-<!-- 
-  <contact>
-    <exclude body1="base" body2="left_driver"/>
-    <exclude body1="base" body2="right_driver"/>
-    <exclude body1="base" body2="left_spring_link"/>
-    <exclude body1="base" body2="right_spring_link"/>
-    <exclude body1="right_coupler" body2="right_follower"/>
-    <exclude body1="left_coupler" body2="left_follower"/>
-  </contact> -->
-
-
-  <equality>
-    <weld body1="vacuum_gripper" body2="suction_pad" active="true"/>
-  </equality>
-
-  <!-- <equality>
-    <joint joint1="finger_joint" joint2="right_outer_knuckle_joint" polycoef="0 -1 0 0 0"/>
-    <joint joint1="finger_joint" joint2="left_inner_knuckle_joint" polycoef="0 -1 0 0 0"/>
-    <joint joint1="finger_joint" joint2="right_inner_knuckle_joint" polycoef="0 -1 0 0 0"/>
-    <joint joint1="finger_joint" joint2="left_inner_finger_joint" polycoef="0 1 0 0 0"/>
-    <joint joint1="finger_joint" joint2="right_inner_finger_joint" polycoef="0 1 0 0 0"/>
-  </equality> -->
-
-
-
 
   <actuator>
     <position class="position" name="shoulder_pan_position" joint="shoulder_pan_joint"/>
@@ -201,13 +175,10 @@
     <position class="position_small" name="wrist_1_position" joint="wrist_1_joint"/>
     <position class="position_small" name="wrist_2_position" joint="wrist_2_joint"/>
     <position class="position_small" name="wrist_3_position" joint="wrist_3_joint"/>
-    <adhesion name="suction" body="suction_pad" ctrlrange="0 1" gain="5"/>
+    <adhesion name="suction" body="suction_pad" ctrlrange="0 1" gain="2500"/>
   </actuator>
-
-  <sensor>
-    <force site="force_sensor"/>
-  </sensor>
 
 </mujoco>
 
 
+<!-- <key qpos='-0.31415 -1.053 1.95356 -2.44724 -1.63354 -1.50792 0.5 1.39794e-15 0.0349829 1 4.58417e-17 -5.66643e-19 1.68274e-16'/> -->
