@@ -1,11 +1,16 @@
 import rclpy
 from rclpy.node import Node
+from rclpy.action import ActionServer
 import torch
-from curobo.wrap.reacher.motion_gen import MotionGen, MotionGenConfig
+import numpy as np
+from curobo.wrap.reacher.motion_gen import MotionGen, MotionGenConfig, MotionGenPlanConfig
 from curobo.geom.sdf.world import CollisionCheckerType
 from curobo.geom.types import WorldConfig
 from curobo.util_file import get_world_configs_path, join_path, load_yaml
 from curobo.types.base import TensorDeviceType
+from curobo.types.robot import JointState
+from curobo.types.math import Pose
+from curobo_action.action import MoveJ, MoveL
 
 class CuroboNode(Node):
     def __init__(self):
@@ -29,6 +34,13 @@ class CuroboNode(Node):
         
         self.tensor_args = TensorDeviceType(device=self.tensor_device, dtype=torch.float32)
         self.init_curobo()
+        
+        self.movej_server = ActionServer(
+            self, MoveJ, 'movej', self.execute_movej)
+        self.movel_server = ActionServer(
+            self, MoveL, 'movel', self.execute_movel)
+        
+        self.get_logger().info("Curobo Action Server Ready.")
     
     def init_curobo(self):
         world_config = WorldConfig.from_dict(
@@ -47,7 +59,52 @@ class CuroboNode(Node):
         self.motion_gen.warmup()
         
         self.get_logger().info("Curobo MotionGen initialized and warmed up.")
+    
+    def plan_motion_js(self, start_state, goal_state):
+        current_state = JointState.from_position(torch.tensor([start_state], device="cuda:0", dtype=torch.float32))
+        goal_state = JointState.from_position(torch.tensor([goal_state], device="cuda:0", dtype=torch.float32))
 
+        result = self.motion_gen.plan_single_js(current_state, goal_state, MotionGenPlanConfig(max_attempts=10000))
+
+        if result.success.item():
+            trajectory = result.get_interpolated_plan().position.tolist()
+            joints = len(trajectory[0]) if trajectory else 0  # Number of joints per waypoint
+            flattened_trajectory = [item for sublist in trajectory for item in sublist]  # Flatten list
+            return True, flattened_trajectory, joints, str(result)
+        else:
+            return False, [], 0, str(result)
+
+
+    def plan_motion(self, start_position, goal_position):
+        goal_pose = Pose(
+            position=self.tensor_args.to_device([goal_position[:3]]),
+            quaternion=self.tensor_args.to_device([goal_position[3:]])  
+        )
+        current_position = JointState.from_position(
+            torch.tensor([start_position], device="cuda:0", dtype=torch.float32))
+
+        result = self.motion_gen.plan_single(current_position, goal_pose, MotionGenPlanConfig(max_attempts=10000))
+
+        if result.success.item():
+            trajectory = result.get_interpolated_plan().position.tolist()
+            joints = len(trajectory[0]) if trajectory else 0  # Number of joints per waypoint
+            flattened_trajectory = [item for sublist in trajectory for item in sublist]  # Flatten list
+            return True, flattened_trajectory, joints, str(result)
+        else:
+            return False, [], 0, str(result)
+
+    async def execute_movej(self, goal_handle):
+        self.get_logger().info("Executing MoveJ action request")
+        success, trajectory, joints, result = self.plan_motion_js(goal_handle.request.start_state, goal_handle.request.goal_pose)
+        goal_handle.succeed()
+        return MoveJ.Result(success=success, result=result, trajectory=trajectory, joints=joints)
+
+
+    async def execute_movel(self, goal_handle):
+        self.get_logger().info("Executing MoveL action request")
+        success, trajectory, joints, result = self.plan_motion(goal_handle.request.start_state, goal_handle.request.goal_pose)
+        goal_handle.succeed()
+        return MoveL.Result(success=success, result=result, trajectory=trajectory, joints=joints)
 
 def main(args=None):
     rclpy.init(args=args)

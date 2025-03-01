@@ -1,0 +1,10 @@
+# Goal definition
+float32[] start_state
+float32[] goal_pose
+---
+# Result definition
+bool success
+string result
+float32[] trajectory
+int32 joints
+---
