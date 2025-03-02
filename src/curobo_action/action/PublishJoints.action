@@ -1,0 +1,6 @@
+float64[] positions
+int32[] indices
+---
+bool success
+string message
+---

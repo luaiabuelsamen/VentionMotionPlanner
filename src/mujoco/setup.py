@@ -20,6 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'mujoco_service = mujoco.mujoco_node:main',
         ],
     },
 )
