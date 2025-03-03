@@ -6,7 +6,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
     pkgPath = launch_ros.substitutions.FindPackageShare(package = 'gantry').find('gantry')
-    urdfModelPath = os.path.join(pkgPath, 'urdf/ur5e_robotiq_2f_140.urdf')
+    urdfModelPath = os.path.join(pkgPath, 'urdf/ur5e_robotiq_2f_140_gantry.urdf')
 
     params = {
     'robot_description': ParameterValue(Command(['cat ', urdfModelPath]), value_type=str)
