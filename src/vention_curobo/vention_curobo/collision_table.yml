@@ -1,0 +1,5 @@
+world_config:
+  cuboid:
+    table:
+      dims: [10.0, 10.0, 0.05]  # Dimensions of the table (x, y, z)
+      pose: [0.0, 0.0, -0.5, 1.0, 0.0, 0.0, 0.0]  # Position and orientation (x, y, z, qw, qx, qy, qz)
