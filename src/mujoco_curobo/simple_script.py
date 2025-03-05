@@ -78,4 +78,3 @@ while (env.get_sim_time() < 100.0) and env.is_viewer_alive():
     for pos in joint_positions:
         env.step(ctrl=pos, ctrl_idxs=[0, 1, 2, 3, 4, 5, 6])
         env.render()
-    break

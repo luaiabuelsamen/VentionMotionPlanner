@@ -4,12 +4,12 @@ import os
 import rclpy
 from rclpy.node import Node
 import numpy as np
-from mujoco.mujoco_parser import MuJoCoParserClass
+from mujoco_api.mujoco_parser import MuJoCoParserClass
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Header
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from rclpy.callback_groups import ReentrantCallbackGroup
-from publish_joints.action import PublishJoints
+from curobo_action.action import PublishJoints
 import time
 
 class MujocoNode(Node):
@@ -20,7 +20,7 @@ class MujocoNode(Node):
         self.callback_group = ReentrantCallbackGroup()
         
         # Declare parameters
-        self.declare_parameter('xml_path', './assets/ur5e/scene_ur5e_2f140_obj (sution).xml')
+        self.declare_parameter('xml_path', './src/mujoco_curobo/assets/ur5e/scene_ur5e_2f140_obj (sution).xml')
         self.declare_parameter('publish_rate', 50.0)  # Hz
         self.declare_parameter('default_positions', [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         
@@ -46,11 +46,6 @@ class MujocoNode(Node):
             goal_callback=self.goal_callback,
             cancel_callback=self.cancel_callback
         )
-        
-        # Check if the XML file exists
-        if not os.path.exists(self.xml_path):
-            self.get_logger().error(f'XML file not found at {self.xml_path}')
-            return
         
         # Initialize MuJoCo environment
         try:
@@ -128,7 +123,7 @@ class MujocoNode(Node):
             if idx < len(self.target_positions):
                 self.target_positions[idx] = goal.positions[i]
         
-        self.target_indices = goal.indices.copy()
+        self.target_indices = goal.indices
         self.action_received = True
         
         # Give time for the simulation to apply the new joint values

@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'mujoco'
+package_name = 'mujoco_api'
 
 setup(
     name=package_name,
@@ -11,6 +11,9 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
+    package_data={
+        'mujoco': ['assets/**/*'],
+    },
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='jetson3',
@@ -20,7 +23,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'mujoco_service = mujoco.mujoco_node:main',
+            'mujoco_service = mujoco_api.mujoco_node:main',
         ],
     },
 )

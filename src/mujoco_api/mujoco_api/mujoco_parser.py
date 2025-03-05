@@ -5,7 +5,7 @@ import mujoco_viewer
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-from mujoco.util import (compute_view_params, get_rotation_matrix_from_two_points,
+from mujoco_api.util import (compute_view_params, get_rotation_matrix_from_two_points,
                   meters2xyz, pr2t, r2w, rpy2r, trim_scale, sample_xyzs)
 
 import mujoco
