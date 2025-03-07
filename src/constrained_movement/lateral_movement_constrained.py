@@ -58,10 +58,10 @@ class ConstrainedMotionPlanner:
             if len(self.env.rev_joint_names) > 0:
                 self.j_names = self.env.rev_joint_names[:len(self.j_names)]
         
-        # Initialize target positions to be more reachable and avoid self-collision
+        # Initialize target positions
         self.target_positions = [
-            np.array([0.35, -0.4, 0.4]),   # Target 1: In front of robot, to the left, higher
-            np.array([0.35, 0.4, 0.4])     # Target 2: In front of robot, to the right, higher
+            np.array([0.35, -0.3, 0.4]),   # Target 1: In front of robot, to the left
+            np.array([0.35, 0.3, 0.4])     # Target 2: In front of robot, to the right
         ]
         # Orientation with end effector pointing forward with slight downward angle
         self.target_orientation = np.array([0.7071, 0.7071, 0.0, 0.0])  # 45-degree tilt
@@ -72,6 +72,9 @@ class ConstrainedMotionPlanner:
         self.plan_step_idx = 0
         self.constraint_mode = 0  # 0: No constraint, 1-4: Different constraint modes
         self.pose_cost_metric = None
+        
+        # Store the current end-effector pose for constraints
+        self.current_ee_pose = None
         
         # Initialize the environment
         self.env.reset()
@@ -184,6 +187,37 @@ class ConstrainedMotionPlanner:
                 torch.tensor([zero_position], device=self.tensor_args.device, dtype=self.tensor_args.dtype)
             )
 
+    def get_current_ee_pose(self):
+        """
+        Get the current end-effector pose.
+        
+        Returns:
+            Current end-effector pose (position, orientation)
+        """
+        try:
+            # Get current joint state
+            current_js = self.get_current_joint_state()
+            
+            # Use CuRobo's forward kinematics to get the EE pose
+            ee_pose = self.motion_gen.kinematics.forward_kinematics(
+                current_js.position, 
+                link_name=self.motion_gen.kinematics.ee_link
+            )
+            
+            # Return as numpy arrays
+            position = ee_pose.position.cpu().numpy()[0]
+            orientation = ee_pose.quaternion.cpu().numpy()[0]
+            
+            return position, orientation
+            
+        except Exception as e:
+            print(f"Error getting end-effector pose: {e}")
+            import traceback
+            traceback.print_exc()
+            
+            # Return default pose as fallback
+            return np.array([0.35, 0.0, 0.4]), np.array([0.7071, 0.7071, 0.0, 0.0])
+
     def plan_motion_to_target(self):
         """
         Plan a motion to the current target with the current constraint mode.
@@ -192,60 +226,66 @@ class ConstrainedMotionPlanner:
             True if planning was successful, False otherwise
         """
         try:
-            # Update the constraint mode
-            self._update_constraint_mode()
-            
             # Get current robot state
-            current_position = self.get_current_joint_state()
+            current_position_js = self.get_current_joint_state()
             
-            # Base target positions
-            base_positions = [
-                np.array([0.35, -0.4, 0.4]),   # Left target
-                np.array([0.35, 0.4, 0.4])     # Right target
-            ]
+            # Get current end-effector pose for constraints
+            current_ee_pos, current_ee_quat = self.get_current_ee_pose()
+            self.current_ee_pose = Pose(
+                position=self.tensor_args.to_device(current_ee_pos),
+                quaternion=self.tensor_args.to_device(current_ee_quat)
+            )
             
-            # Get the base target position
-            base_position = base_positions[self.current_target_idx]
+            # Update the constraint mode and pose_cost_metric
+            self._update_constraint_mode()
+            self._update_constraint_visualization()
             
             # Set the target pose based on constraint mode
             if self.constraint_mode == 0:
-                # Unconstrained - use base target
-                target_position = base_position.copy()
+                # Unconstrained - alternate between two positions
+                if self.current_target_idx == 0:
+                    target_position = np.array([0.35, -0.3, 0.4])
+                else:
+                    target_position = np.array([0.35, 0.3, 0.4])
+                target_orientation = self.target_orientation
             
             elif self.constraint_mode == 1:
-                # Up/down movement - vary Z only
-                # In this mode, we'll ignore the X and Y of the base positions
-                # and only use the Z component
+                # Y-axis constraint (moving vertical or horizontal while keeping Y constant)
                 if self.current_target_idx == 0:
-                    target_position = np.array([0.35, 0.4, 0.4])  # Lower Z position
+                    # Move vertically
+                    target_position = np.array([current_ee_pos[0], current_ee_pos[1], current_ee_pos[2] + 0.1])
                 else:
-                    target_position = np.array([0.35, 0.4, 0.1])   # Higher Z position
+                    # Move horizontally in X
+                    target_position = np.array([current_ee_pos[0] + 0.1, current_ee_pos[1], current_ee_pos[2]])
+                target_orientation = current_ee_quat  # Keep current orientation
                 
             elif self.constraint_mode == 2:
-                # Left/right movement - vary Y only
-                # Use the same X and Z for both targets
+                # Orientation + Y-axis constraint
                 if self.current_target_idx == 0:
-                    target_position = np.array([0.35, -0.45, 0.4])  # Left Y position
+                    # Move vertically
+                    target_position = np.array([current_ee_pos[0], current_ee_pos[1], current_ee_pos[2] + 0.1])
                 else:
-                    target_position = np.array([0.35, 0.45, 0.4])   # Right Y position
+                    # Move horizontally in X
+                    target_position = np.array([current_ee_pos[0] + 0.1, current_ee_pos[1], current_ee_pos[2]])
+                target_orientation = current_ee_quat  # Must keep current orientation
                 
             elif self.constraint_mode == 3:
-                # Forward/backward movement - vary X only
-                # Use the same Y and Z for both targets
+                # X,Y-axis constraint (only Z movement)
+                # Move only vertically
                 if self.current_target_idx == 0:
-                    target_position = np.array([0.35, 0.0, 0.4])    # Forward X position
+                    target_position = np.array([current_ee_pos[0], current_ee_pos[1], current_ee_pos[2] + 0.1])
                 else:
-                    target_position = np.array([0.55, 0.0, 0.4])   # Backward X position
+                    target_position = np.array([current_ee_pos[0], current_ee_pos[1], current_ee_pos[2] - 0.1])
+                target_orientation = current_ee_quat  # Can change orientation
                 
             elif self.constraint_mode == 4:
-                # Diagonal movement - vary X and Y, keep Z constant
-                # Use the same Z for both targets
+                # Orientation + X,Y-axis constraint (only Z movement with fixed orientation)
+                # Move only vertically with fixed orientation
                 if self.current_target_idx == 0:
-                    target_position = np.array([0.55, -0.35, 0.4])  # Front-left position
+                    target_position = np.array([current_ee_pos[0], current_ee_pos[1], current_ee_pos[2] + 0.1])
                 else:
-                    target_position = np.array([0.25, 0.35, 0.4])  # Back-right position
-            
-            target_orientation = self.target_orientation
+                    target_position = np.array([current_ee_pos[0], current_ee_pos[1], current_ee_pos[2] - 0.1])
+                target_orientation = current_ee_quat  # Must keep current orientation
             
             print(f"Planning motion to target: {target_position}")
             
@@ -254,17 +294,17 @@ class ConstrainedMotionPlanner:
                 quaternion=self.tensor_args.to_device(target_orientation)
             )
             
-            # Configure planning
+            # Configure planning with the pose cost metric for constraints
             plan_config = MotionGenPlanConfig(
                 enable_graph=True,
                 enable_graph_attempt=4,
                 max_attempts=15,
                 enable_finetune_trajopt=True,
-                pose_cost_metric=self.pose_cost_metric
+                pose_cost_metric=self.pose_cost_metric  # Apply the constraint here
             )
             
             # Plan the motion
-            result = self.motion_gen.plan_single(current_position, ik_goal, plan_config)
+            result = self.motion_gen.plan_single(current_position_js, ik_goal, plan_config)
             
             if result.success.item():
                 print("Planning successful!")
@@ -272,7 +312,7 @@ class ConstrainedMotionPlanner:
                 self.plan_step_idx = 0
                 
                 # Move to the next target for the next planning cycle
-                self.current_target_idx = (self.current_target_idx + 1) % len(self.target_positions)
+                self.current_target_idx = (self.current_target_idx + 1) % 2
                 
                 # Increment constraint mode every other successful plan
                 if self.current_target_idx == 0:
@@ -284,7 +324,7 @@ class ConstrainedMotionPlanner:
                 print(f"Error: {result}")
                 
                 # Try with a different target if this one failed
-                self.current_target_idx = (self.current_target_idx + 1) % len(self.target_positions)
+                self.current_target_idx = (self.current_target_idx + 1) % 2
                 
                 return False
                 
@@ -301,37 +341,139 @@ class ConstrainedMotionPlanner:
             self.pose_cost_metric = None
             
         elif self.constraint_mode == 1:
-            print("Constraint Mode: Up/Down Movement (Z-axis only)")
-            # Hold X and Y position, allow Z to vary
-            # Format is [rx, ry, rz, x, y, z] where 1 means constrained
+            print("Constraint Mode: Holding tool linear-y")
+            # Constrain the y-axis movement using the reference pose
             self.pose_cost_metric = PoseCostMetric(
                 hold_partial_pose=True,
-                hold_vec_weight=self.tensor_args.to_device([1, 1, 1, 0, 0, 0])
+                hold_vec_weight=self.tensor_args.to_device([0, 0, 0, 0, 1, 0]),
+                reference_pose=self.current_ee_pose
             )
             
         elif self.constraint_mode == 2:
-            print("Constraint Mode: Left/Right Movement (Y-axis only)")
-            # Hold X and Z position, allow Y to vary
+            print("Constraint Mode: Holding tool Orientation and linear-y")
+            # Constrain orientation and y-axis movement
             self.pose_cost_metric = PoseCostMetric(
                 hold_partial_pose=True,
-                hold_vec_weight=self.tensor_args.to_device([1, 1, 1, 0, 0, 0])
+                hold_vec_weight=self.tensor_args.to_device([1, 1, 1, 0, 1, 0]),
+                reference_pose=self.current_ee_pose
             )
             
         elif self.constraint_mode == 3:
-            print("Constraint Mode: Forward/Backward Movement (X-axis only)")
-            # Hold Y and Z position, allow X to vary
+            print("Constraint Mode: Holding tool linear-y, linear-x")
+            # Constrain both x and y axes (similar to the line constraint in Isaac)
             self.pose_cost_metric = PoseCostMetric(
                 hold_partial_pose=True,
-                hold_vec_weight=self.tensor_args.to_device([1, 1, 1, 0, 0, 0])
+                hold_vec_weight=self.tensor_args.to_device([0, 0, 0, 1, 1, 0]),
+                reference_pose=self.current_ee_pose
             )
             
         elif self.constraint_mode == 4:
-            print("Constraint Mode: XY-Plane Movement (Z fixed)")
-            # Hold Z position, allow X and Y to vary
+            print("Constraint Mode: Holding tool Orientation and linear-y, linear-x")
+            # Constrain orientation, x-axis, and y-axis movement
             self.pose_cost_metric = PoseCostMetric(
                 hold_partial_pose=True,
-                hold_vec_weight=self.tensor_args.to_device([1, 1, 1, 0, 0, 0])
+                hold_vec_weight=self.tensor_args.to_device([1, 1, 1, 1, 1, 0]),
+                reference_pose=self.current_ee_pose
             )
+            
+    def _update_constraint_visualization(self):
+        """Update visualization of the constraints based on the current constraint mode."""
+        
+        # Define colors for different constraint types
+        linear_color = np.array([0.98, 0.34, 0.22])  # Red-orange for linear constraints
+        orient_color = np.array([0.4, 0.58, 0.21])   # Green for orientation constraints
+        disable_color = np.array([0.2, 0.2, 0.2])    # Gray for disabled constraints
+        
+        # Set initial visibility (all hidden)
+        plane_visible = False
+        line_visible = False
+        plane_color = disable_color
+        line_color = disable_color
+        
+        # Update based on constraint mode
+        if self.constraint_mode == 0:
+            # No constraints - hide all visualizations
+            pass
+            
+        elif self.constraint_mode == 1:
+            # Y-axis constraint - show plane
+            plane_visible = True
+            plane_color = linear_color
+            
+        elif self.constraint_mode == 2:
+            # Orientation + Y-axis - show plane with orientation color
+            plane_visible = True
+            plane_color = orient_color
+            
+        elif self.constraint_mode == 3:
+            # X,Y-axis constraint (line) - show line
+            line_visible = True
+            line_color = linear_color
+            
+        elif self.constraint_mode == 4:
+            # Orientation + X,Y-axis - show line with orientation color
+            line_visible = True
+            line_color = orient_color
+        
+        # Apply visualizations if MuJoCo environment supports it
+        try:
+            # Check if we have site visualization in the model
+            # If not, we'll skip this to avoid errors
+            if not hasattr(self.env.model, 'site_names'):
+                return
+                
+            # Update plane visualization
+            if 'plane_constraint' in self.env.model.site_names:
+                plane_site_id = self.env.model.site_name2id('plane_constraint')
+                if hasattr(self.env.model, 'site_rgba'):
+                    rgba = np.array([*plane_color, 0.3 if plane_visible else 0.0])  # Last value is alpha
+                    self.env.model.site_rgba[plane_site_id] = rgba
+                
+            # Update line visualization
+            if 'line_constraint' in self.env.model.site_names:
+                line_site_id = self.env.model.site_name2id('line_constraint')
+                if hasattr(self.env.model, 'site_rgba'):
+                    rgba = np.array([*line_color, 0.5 if line_visible else 0.0])  # Last value is alpha
+                    self.env.model.site_rgba[line_site_id] = rgba
+        except Exception as e:
+            # Don't let visualization issues stop the main functionality
+            pass
+
+    def add_constraint_visualization(self):
+        """
+        Add visual indicators for constraints to the MuJoCo environment.
+        This will be called from run_simulation to set up the visualizations.
+        """
+        try:
+            # Base position where constraints will be visualized
+            base_pos = np.array([0.35, 0.0, 0.4])  # Center of workspace
+            
+            # Try to add a site for the plane constraint (Y-axis constraint)
+            plane_size = np.array([0.4, 0.001, 0.4])  # Thin in Y direction
+            
+            # Add a site for the line constraint (X,Y-axis constraint)
+            line_size = np.array([0.01, 0.01, 0.5])  # Thin vertical line
+            
+            # Note: For MuJoCo, adding sites at runtime may not be supported
+            # An alternative approach is to add these sites in the XML file
+            # Here we're checking if the sites already exist
+            has_plane_site = 'plane_constraint' in self.env.model.site_names if hasattr(self.env.model, 'site_names') else False
+            has_line_site = 'line_constraint' in self.env.model.site_names if hasattr(self.env.model, 'site_names') else False
+            
+            if not has_plane_site:
+                print("Note: 'plane_constraint' site not found in model.")
+                print("Consider adding this to your XML file for better visualization.")
+                
+            if not has_line_site:
+                print("Note: 'line_constraint' site not found in model.")
+                print("Consider adding this to your XML file for better visualization.")
+                
+            # Initialize the sites to be invisible
+            self._update_constraint_visualization()
+            
+        except Exception as e:
+            print(f"Could not set up constraint visualizations: {e}")
+            print("This is not critical for functionality, just for visualization")
 
     def step_simulation(self):
         """
@@ -440,7 +582,10 @@ class ConstrainedMotionPlanner:
             jointrgba=[0.2, 0.6, 0.8, 0.6]
         )
         
-        # Try to add visual indicators for target positions if possible
+        # Add visualizations for constraints
+        self.add_constraint_visualization()
+        
+        # Try to add visual indicators for target positions
         try:
             # This would depend on how your MuJoCo environment is set up
             # and whether it supports adding visual elements at runtime
@@ -450,13 +595,15 @@ class ConstrainedMotionPlanner:
             print(f"Could not add target visualizations: {e}")
         
         print("Starting simulation...")
+        print("Constraint modes will cycle through:")
+        print("0: Unconstrained Motion")
+        print("1: Y-axis Constraint (Plane)")
+        print("2: Orientation + Y-axis Constraint")
+        print("3: X,Y-axis Constraint (Line)")
+        print("4: Orientation + X,Y-axis Constraint")
         
         # Main simulation loop
         while self.env.is_viewer_alive() and self.env.get_sim_time() < 100.0:
-            # For simplicity, we'll skip dynamic world updates for now
-            # and just use the initial world configuration
-            # This avoids issues with the save_world_state function
-            
             # Step the simulation
             self.step_simulation()
             
@@ -466,28 +613,9 @@ class ConstrainedMotionPlanner:
         print("Simulation finished.")
 
 
-# # Example usage
-# if __name__ == "__main__":
-#     # Path to MuJoCo XML file
-#     xml_path = 'assets/ur5e/scene_ur5e.xml'  # Update this path to your robot model
-    
-#     # CuRobo configuration files
-#     robot_config_file = "ur5e.yml"  # Update this to match your robot
-#     world_config_file = "collision_table.yml"
-    
-#     # Create and run the constrained motion planner
-#     motion_planner = ConstrainedMotionPlanner(
-#         xml_path=xml_path,
-#         robot_config_file=robot_config_file,
-#         world_config_file=world_config_file
-#     )
-    
-#     motion_planner.run_simulation()
-
 if __name__ == "__main__":
     # Path to MuJoCo XML file
-    # xml_path = 'assets/ur5e/scene_ur5e.xml'  # Update this path to your robot model
-    xml_path = '../assets/ur5e/scene_ur5e_2f140_obj_suction.xml'
+    xml_path = 'assets/ur5e/scene_ur5e_2f140_obj (sution).xml'
   
     # CuRobo configuration files
     robot_config_file = "ur5e.yml"  # Update this to match your robot

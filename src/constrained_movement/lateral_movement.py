@@ -60,8 +60,8 @@ class ConstrainedMotionPlanner:
         
         # Initialize target positions to be more reachable and avoid self-collision
         self.target_positions = [
-            np.array([0.35, -0.4, 0.4]),   # Target 1: In front of robot, to the left, higher
-            np.array([0.35, 0.4, 0.4])     # Target 2: In front of robot, to the right, higher
+            np.array([0.35, -0.3, 0.4]),   # Target 1: In front of robot, to the left, higher
+            np.array([0.35, 0.3, 0.4])     # Target 2: In front of robot, to the right, higher
         ]
         # Orientation with end effector pointing forward with slight downward angle
         self.target_orientation = np.array([0.7071, 0.7071, 0.0, 0.0])  # 45-degree tilt
@@ -192,58 +192,49 @@ class ConstrainedMotionPlanner:
             True if planning was successful, False otherwise
         """
         try:
-            # Update the constraint mode
+            # Update the constraint mode text (it doesn't actually apply constraints now)
             self._update_constraint_mode()
             
             # Get current robot state
             current_position = self.get_current_joint_state()
             
-            # Base target positions
-            base_positions = [
-                np.array([0.35, -0.4, 0.4]),   # Left target
-                np.array([0.35, 0.4, 0.4])     # Right target
-            ]
-            
-            # Get the base target position
-            base_position = base_positions[self.current_target_idx]
-            
             # Set the target pose based on constraint mode
+            base_pos = np.array([0.35, 0.0, 0.4])
+            
             if self.constraint_mode == 0:
-                # Unconstrained - use base target
-                target_position = base_position.copy()
+                # Unconstrained - alternate between two positions
+                if self.current_target_idx == 0:
+                    target_position = np.array([0.35, -0.3, 0.4])
+                else:
+                    target_position = np.array([0.35, 0.3, 0.4])
             
             elif self.constraint_mode == 1:
-                # Up/down movement - vary Z only
-                # In this mode, we'll ignore the X and Y of the base positions
-                # and only use the Z component
+                # Up/down movement - vary Z
                 if self.current_target_idx == 0:
-                    target_position = np.array([0.35, 0.4, 0.4])  # Lower Z position
+                    target_position = np.array([0.35, 0.0, 0.3])
                 else:
-                    target_position = np.array([0.35, 0.4, 0.1])   # Higher Z position
+                    target_position = np.array([0.35, 0.0, 0.5])
                 
             elif self.constraint_mode == 2:
-                # Left/right movement - vary Y only
-                # Use the same X and Z for both targets
+                # Left/right movement - vary Y
                 if self.current_target_idx == 0:
-                    target_position = np.array([0.35, -0.45, 0.4])  # Left Y position
+                    target_position = np.array([0.35, -0.3, 0.4])
                 else:
-                    target_position = np.array([0.35, 0.45, 0.4])   # Right Y position
+                    target_position = np.array([0.35, 0.3, 0.4])
                 
             elif self.constraint_mode == 3:
-                # Forward/backward movement - vary X only
-                # Use the same Y and Z for both targets
+                # Forward/backward movement - vary X
                 if self.current_target_idx == 0:
-                    target_position = np.array([0.35, 0.0, 0.4])    # Forward X position
+                    target_position = np.array([0.25, 0.0, 0.4])
                 else:
-                    target_position = np.array([0.55, 0.0, 0.4])   # Backward X position
+                    target_position = np.array([0.45, 0.0, 0.4])
                 
             elif self.constraint_mode == 4:
-                # Diagonal movement - vary X and Y, keep Z constant
-                # Use the same Z for both targets
+                # Diagonal movement - vary X and Y
                 if self.current_target_idx == 0:
-                    target_position = np.array([0.55, -0.35, 0.4])  # Front-left position
+                    target_position = np.array([0.25, -0.25, 0.4])
                 else:
-                    target_position = np.array([0.25, 0.35, 0.4])  # Back-right position
+                    target_position = np.array([0.45, 0.25, 0.4])
             
             target_orientation = self.target_orientation
             
@@ -259,8 +250,7 @@ class ConstrainedMotionPlanner:
                 enable_graph=True,
                 enable_graph_attempt=4,
                 max_attempts=15,
-                enable_finetune_trajopt=True,
-                pose_cost_metric=self.pose_cost_metric
+                enable_finetune_trajopt=True
             )
             
             # Plan the motion
@@ -301,37 +291,24 @@ class ConstrainedMotionPlanner:
             self.pose_cost_metric = None
             
         elif self.constraint_mode == 1:
-            print("Constraint Mode: Up/Down Movement (Z-axis only)")
-            # Hold X and Y position, allow Z to vary
-            # Format is [rx, ry, rz, x, y, z] where 1 means constrained
-            self.pose_cost_metric = PoseCostMetric(
-                hold_partial_pose=True,
-                hold_vec_weight=self.tensor_args.to_device([1, 1, 1, 0, 0, 0])
-            )
+            print("Constraint Mode: Modified for simplicity - moving up/down")
+            # For simplicity, we'll just modify the targets rather than using constraint metrics
+            self.pose_cost_metric = None
             
         elif self.constraint_mode == 2:
-            print("Constraint Mode: Left/Right Movement (Y-axis only)")
-            # Hold X and Z position, allow Y to vary
-            self.pose_cost_metric = PoseCostMetric(
-                hold_partial_pose=True,
-                hold_vec_weight=self.tensor_args.to_device([1, 1, 1, 0, 0, 0])
-            )
+            print("Constraint Mode: Modified for simplicity - moving left/right")
+            # For simplicity, we'll just modify the targets rather than using constraint metrics
+            self.pose_cost_metric = None
             
         elif self.constraint_mode == 3:
-            print("Constraint Mode: Forward/Backward Movement (X-axis only)")
-            # Hold Y and Z position, allow X to vary
-            self.pose_cost_metric = PoseCostMetric(
-                hold_partial_pose=True,
-                hold_vec_weight=self.tensor_args.to_device([1, 1, 1, 0, 0, 0])
-            )
+            print("Constraint Mode: Modified for simplicity - moving forward/backward")
+            # For simplicity, we'll just modify the targets rather than using constraint metrics
+            self.pose_cost_metric = None
             
         elif self.constraint_mode == 4:
-            print("Constraint Mode: XY-Plane Movement (Z fixed)")
-            # Hold Z position, allow X and Y to vary
-            self.pose_cost_metric = PoseCostMetric(
-                hold_partial_pose=True,
-                hold_vec_weight=self.tensor_args.to_device([1, 1, 1, 0, 0, 0])
-            )
+            print("Constraint Mode: Modified for simplicity - diagonal movement")
+            # For simplicity, we'll just modify the targets rather than using constraint metrics
+            self.pose_cost_metric = None
 
     def step_simulation(self):
         """
@@ -487,7 +464,7 @@ class ConstrainedMotionPlanner:
 if __name__ == "__main__":
     # Path to MuJoCo XML file
     # xml_path = 'assets/ur5e/scene_ur5e.xml'  # Update this path to your robot model
-    xml_path = '../assets/ur5e/scene_ur5e_2f140_obj_suction.xml'
+    xml_path = 'assets/ur5e/scene_ur5e_2f140_obj (sution).xml'
   
     # CuRobo configuration files
     robot_config_file = "ur5e.yml"  # Update this to match your robot
