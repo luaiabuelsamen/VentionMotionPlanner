@@ -1,7 +1,6 @@
 <mujoco model="ur5e scene">
   
   
-  
   <include file="./ur5e_suction.xml" />
 
   
@@ -9,6 +8,8 @@
 
   
   <include file="../object/floor_sky.xml" />
+
+  <include file="../object/collision.xml" />
 
 
 </mujoco>

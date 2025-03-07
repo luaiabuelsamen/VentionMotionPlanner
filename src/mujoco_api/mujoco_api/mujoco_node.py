@@ -20,7 +20,7 @@ class MujocoNode(Node):
         self.callback_group = ReentrantCallbackGroup()
         
         # Declare parameters
-        self.declare_parameter('xml_path', './src/mujoco_curobo/assets/ur5e/scene_ur5e_2f140_obj (sution).xml')
+        self.declare_parameter('xml_path', './src/mujoco_curobo/assets/ur5e/scene_ur5e_2f140_obj_suction.xml')
         self.declare_parameter('publish_rate', 50.0)  # Hz
         self.declare_parameter('default_positions', [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         

@@ -1,0 +1,14 @@
+<mujocoinclude>
+    <default>
+        <geom type="box" friction=".5"/>
+        <default class="object_2">
+            <geom rgba=".5 .8 .5 1" density="100"/>
+        </default>
+    </default>
+    <worldbody>
+
+        <body name="col_1" pos="0.0 0.50 0.035" >
+            <geom size="0.07 0.07 1.035" type="box" rgba="0.3 0.5 0.8 1" />
+        </body>
+    </worldbody>
+</mujocoinclude>
