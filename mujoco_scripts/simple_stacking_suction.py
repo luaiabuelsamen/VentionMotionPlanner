@@ -277,7 +277,7 @@ class UR5eMotionPlanner:
 
 # Usage example:
 if __name__ == "__main__":
-    xml_path = 'assets/ur5e/scene_ur5e_2f140_obj (sution).xml'
+    xml_path = '../assets/ur5e/scene_ur5e_2f140_obj_suction.xml'
     robot_config_file = "ur5e.yml"
     world_config_file = "collision_table.yml"
     

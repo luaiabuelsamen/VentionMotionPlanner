@@ -17,8 +17,6 @@ import time
 class CuroboNode(Node):
     def __init__(self):
         super().__init__('curobo')
-        
-        # Create callback group for allowing concurrent callbacks
         self.callback_group = ReentrantCallbackGroup()
         
         self.declare_parameters(
@@ -29,8 +27,8 @@ class CuroboNode(Node):
                 ('tensor_device', 'cuda:0'),
                 ('n_obstacle_cuboids', 20),
                 ('n_obstacle_mesh', 2),
-                ('trajectory_execution_dt', 0.05),  # Time between trajectory points for execution
-                ('wait_for_completion', True)      # Whether to wait for each point to complete
+                ('trajectory_execution_dt', 0.01),
+                ('wait_for_completion', True)
             ]
         )
         
@@ -45,7 +43,6 @@ class CuroboNode(Node):
         self.tensor_args = TensorDeviceType(device=self.tensor_device, dtype=torch.float32)
         self.init_curobo()
         
-        # Create action client for sending joint positions to MuJoCo
         self._action_client = ActionClient(
             self,
             PublishJoints,
@@ -53,7 +50,6 @@ class CuroboNode(Node):
             callback_group=self.callback_group
         )
         
-        # Create action servers for MoveJ and MoveL
         self.movej_server = ActionServer(
             self, 
             MoveJ, 
@@ -70,7 +66,6 @@ class CuroboNode(Node):
             callback_group=self.callback_group
         )
         
-        # Wait for the action server to be available
         self.get_logger().info("Waiting for PublishJoints action server...")
         if not self._action_client.wait_for_server(timeout_sec=5.0):
             self.get_logger().warn("PublishJoints action server not available after 5 seconds")
@@ -81,7 +76,7 @@ class CuroboNode(Node):
     
     def init_curobo(self):
         world_config = WorldConfig.from_dict(
-            load_yaml(join_path(get_world_configs_path(), self.world_config_file))
+            load_yaml(self.world_config_file)
         )
         
         motion_gen_config = MotionGenConfig.load_from_robot_config(
@@ -105,8 +100,8 @@ class CuroboNode(Node):
 
         if result.success.item():
             trajectory = result.get_interpolated_plan().position.tolist()
-            joints = len(trajectory[0]) if trajectory else 0  # Number of joints per waypoint
-            flattened_trajectory = [item for sublist in trajectory for item in sublist]  # Flatten list
+            joints = len(trajectory[0]) if trajectory else 0
+            flattened_trajectory = [item for sublist in trajectory for item in sublist]
             return True, trajectory, joints, str(result)
         else:
             return False, [], 0, str(result)
@@ -123,8 +118,8 @@ class CuroboNode(Node):
 
         if result.success.item():
             trajectory = result.get_interpolated_plan().position.tolist()
-            joints = len(trajectory[0]) if trajectory else 0  # Number of joints per waypoint
-            flattened_trajectory = [item for sublist in trajectory for item in sublist]  # Flatten list
+            joints = len(trajectory[0]) if trajectory else 0
+            flattened_trajectory = [item for sublist in trajectory for item in sublist]
             return True, trajectory, joints, str(result)
         else:
             return False, [], 0, str(result)
@@ -133,26 +128,19 @@ class CuroboNode(Node):
         
         self.get_logger().info(f"Executing trajectory with {len(trajectory)} waypoints")
         
-        # Execute each waypoint
         for i, waypoint in enumerate(trajectory):
-            # Create goal message
             goal_msg = PublishJoints.Goal()
             goal_msg.positions = waypoint
             goal_msg.indices = list(range(len(waypoint)))
             
             self.get_logger().debug(f"Sending waypoint {i+1}/{len(trajectory)}")
             
-            # Send goal
             send_goal_future = self._action_client.send_goal_async(goal_msg)
-            
-            # Wait for goal to be accepted
             goal_handle = await send_goal_future
             
             if not goal_handle.accepted:
                 self.get_logger().error(f"Goal for waypoint {i+1} was rejected")
                 return False
-            
-            # If configured to wait for completion, wait for the result
             if self.wait_for_completion:
                 get_result_future = goal_handle.get_result_async()
                 result = await get_result_future
@@ -166,11 +154,8 @@ class CuroboNode(Node):
     async def execute_movej(self, goal_handle):
         self.get_logger().info("Executing MoveJ action request")
         
-        # Extract request data
         start_state = goal_handle.request.start_state
         goal_state = goal_handle.request.goal_pose
-        
-        # Plan the motion
         success, trajectory, joints, result_str = self.plan_motion_js(start_state, goal_state)
         
         if success:
@@ -185,7 +170,6 @@ class CuroboNode(Node):
         else:
             self.get_logger().error("Motion planning failed")
         
-        # Return the result
         goal_handle.succeed()
         return MoveJ.Result(
             success=success, 
@@ -196,12 +180,9 @@ class CuroboNode(Node):
 
     async def execute_movel(self, goal_handle):
         self.get_logger().info("Executing MoveL action request")
-        
-        # Extract request data
+
         start_state = goal_handle.request.start_state
         goal_pose = goal_handle.request.goal_pose
-        
-        # Plan the motion
         success, trajectory, joints, result_str = self.plan_motion(start_state, goal_pose)
         
         if success:
@@ -216,7 +197,6 @@ class CuroboNode(Node):
         else:
             self.get_logger().error("Motion planning failed")
         
-        # Return the result
         goal_handle.succeed()
         return MoveL.Result(
             success=success, 

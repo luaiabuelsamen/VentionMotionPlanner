@@ -1,0 +1,12 @@
+ur5e_with_gantry:
+  curobo:
+    world_config_file: config/curobo/world_config/gantry_table.yml
+    robot_config_file: ur5e_robotiq_2f_140_x.yml
+  mujoco:
+    xml_path: assets/ur5e/scene_ur5e_2f140_obj_gantry.xml
+    meshes:
+      - bs_link: assets/ur5e/mesh/gantry/bs_link.STL
+      - linear_rail: assets/ur5e/mesh/gantry/linear_rail.STL
+    update_world:
+      - bs_link
+      - linear_rail

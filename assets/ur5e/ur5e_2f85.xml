@@ -77,35 +77,35 @@
     <material name="gray" rgba="0.4627 0.4627 0.4627 1"/>
     <material name="2f85/black" rgba="0.149 0.149 0.149 1"/>
 
-    <mesh file="mesh/base_0.obj"/>
-    <mesh file="mesh/base_1.obj"/>
-    <mesh file="mesh/shoulder_0.obj"/>
-    <mesh file="mesh/shoulder_1.obj"/>
-    <mesh file="mesh/shoulder_2.obj"/>
-    <mesh file="mesh/upperarm_0.obj"/>
-    <mesh file="mesh/upperarm_1.obj"/>
-    <mesh file="mesh/upperarm_2.obj"/>
-    <mesh file="mesh/upperarm_3.obj"/>
-    <mesh file="mesh/forearm_0.obj"/>
-    <mesh file="mesh/forearm_1.obj"/>
-    <mesh file="mesh/forearm_2.obj"/>
-    <mesh file="mesh/forearm_3.obj"/>
-    <mesh file="mesh/wrist1_0.obj"/>
-    <mesh file="mesh/wrist1_1.obj"/>
-    <mesh file="mesh/wrist1_2.obj"/>
-    <mesh file="mesh/wrist2_0.obj"/>
-    <mesh file="mesh/wrist2_1.obj"/>
-    <mesh file="mesh/wrist2_2.obj"/>
-    <mesh file="mesh/wrist3.obj"/>
+    <mesh file="./ur5e/base_0.obj" />
+    <mesh file="./ur5e/base_1.obj" />
+    <mesh file="./ur5e/shoulder_0.obj" />
+    <mesh file="./ur5e/shoulder_1.obj" />
+    <mesh file="./ur5e/shoulder_2.obj" />
+    <mesh file="./ur5e/upperarm_0.obj" />
+    <mesh file="./ur5e/upperarm_1.obj" />
+    <mesh file="./ur5e/upperarm_2.obj" />
+    <mesh file="./ur5e/upperarm_3.obj" />
+    <mesh file="./ur5e/forearm_0.obj" />
+    <mesh file="./ur5e/forearm_1.obj" />
+    <mesh file="./ur5e/forearm_2.obj" />
+    <mesh file="./ur5e/forearm_3.obj" />
+    <mesh file="./ur5e/wrist1_0.obj" />
+    <mesh file="./ur5e/wrist1_1.obj" />
+    <mesh file="./ur5e/wrist1_2.obj" />
+    <mesh file="./ur5e/wrist2_0.obj" />
+    <mesh file="./ur5e/wrist2_1.obj" />
+    <mesh file="./ur5e/wrist2_2.obj" />
+    <mesh file="./ur5e/wrist3.obj" />
 
-    <mesh class="2f85" file="mesh/base_mount.stl"/>
-    <mesh class="2f85" file="mesh/base.stl"/>
-    <mesh class="2f85" file="mesh/driver.stl"/>
-    <mesh class="2f85" file="mesh/coupler.stl"/>
-    <mesh class="2f85" file="mesh/follower.stl"/>
-    <mesh class="2f85" file="mesh/pad.stl"/>
-    <mesh class="2f85" file="mesh/silicone_pad.stl"/>
-    <mesh class="2f85" file="mesh/spring_link.stl"/>
+    <mesh class="2f85" file="./2f85/base_mount.stl"/>
+    <mesh class="2f85" file="./2f85/base.stl"/>
+    <mesh class="2f85" file="./2f85/driver.stl"/>
+    <mesh class="2f85" file="./2f85/coupler.stl"/>
+    <mesh class="2f85" file="./2f85/follower.stl"/>
+    <mesh class="2f85" file="./2f85/pad.stl"/>
+    <mesh class="2f85" file="./2f85/silicone_pad.stl"/>
+    <mesh class="2f85" file="./2f85/spring_link.stl"/>
   </asset>
 
   <worldbody>

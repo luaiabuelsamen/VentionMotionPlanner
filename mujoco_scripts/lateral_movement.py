@@ -464,7 +464,7 @@ class ConstrainedMotionPlanner:
 if __name__ == "__main__":
     # Path to MuJoCo XML file
     # xml_path = 'assets/ur5e/scene_ur5e.xml'  # Update this path to your robot model
-    xml_path = 'assets/ur5e/scene_ur5e_2f140_obj (sution).xml'
+    xml_path = '../assets/ur5e/scene_ur5e_2f140_obj_suction.xml'
   
     # CuRobo configuration files
     robot_config_file = "ur5e.yml"  # Update this to match your robot

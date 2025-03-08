@@ -38,27 +38,26 @@
     <material name="linkgray" specular="0.5" shininess="0.25" rgba="0.82 0.82 0.82 1"/>
     <material name="urblue" specular="0.5" shininess="0.25" rgba="0.49 0.678 0.8 1"/>
 
-    <mesh file="base_0.obj"/>
-    <mesh file="base_1.obj"/>
-    <mesh file="shoulder_0.obj"/>
-    <mesh file="shoulder_1.obj"/>
-    <mesh file="shoulder_2.obj"/>
-    <mesh file="upperarm_0.obj"/>
-    <mesh file="upperarm_1.obj"/>
-    <mesh file="upperarm_2.obj"/>
-    <mesh file="upperarm_3.obj"/>
-    <mesh file="forearm_0.obj"/>
-    <mesh file="forearm_1.obj"/>
-    <mesh file="forearm_2.obj"/>
-    <mesh file="forearm_3.obj"/>
-    <mesh file="wrist1_0.obj"/>
-    <mesh file="wrist1_1.obj"/>
-    <mesh file="wrist1_2.obj"/>
-    <mesh file="wrist2_0.obj"/>
-    <mesh file="wrist2_1.obj"/>
-    <mesh file="wrist2_2.obj"/>
-    <mesh file="wrist3.obj"/>
-    <mesh file="vention_cad.STL" name= "venemesh"/>
+    <mesh file="ur5e/base_0.obj"/>
+    <mesh file="ur5e/base_1.obj"/>
+    <mesh file="ur5e/shoulder_0.obj"/>
+    <mesh file="ur5e/shoulder_1.obj"/>
+    <mesh file="ur5e/shoulder_2.obj"/>
+    <mesh file="ur5e/upperarm_0.obj"/>
+    <mesh file="ur5e/upperarm_1.obj"/>
+    <mesh file="ur5e/upperarm_2.obj"/>
+    <mesh file="ur5e/upperarm_3.obj"/>
+    <mesh file="ur5e/forearm_0.obj"/>
+    <mesh file="ur5e/forearm_1.obj"/>
+    <mesh file="ur5e/forearm_2.obj"/>
+    <mesh file="ur5e/forearm_3.obj"/>
+    <mesh file="ur5e/wrist1_0.obj"/>
+    <mesh file="ur5e/wrist1_1.obj"/>
+    <mesh file="ur5e/wrist1_2.obj"/>
+    <mesh file="ur5e/wrist2_0.obj"/>
+    <mesh file="ur5e/wrist2_1.obj"/>
+    <mesh file="ur5e/wrist2_2.obj"/>
+    <mesh file="ur5e/wrist3.obj"/>
 
   </asset>
 
@@ -67,7 +66,6 @@
     <light name="spotlight" mode="targetbodycom" target="wrist_2_link" pos="0 -1 2"/>
     <body name="base" pos="0 0 0" quat="1 0 0 0">
       <inertial mass="4.0" pos="0 0 0" diaginertia="0.00443333156 0.00443333156 0.0072"/>
-      <geom mesh="venemesh" material="black" class="visual"/>
       <geom mesh="base_1" material="jointgray" class="visual"/>
       <body name="shoulder_link" pos="0 0 0.163">
         <inertial mass="3.7" pos="0 0 0" diaginertia="0.0102675 0.0102675 0.00666"/>

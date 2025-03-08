@@ -20,7 +20,7 @@ from collections import deque
 
 class StateMachine:
     def __init__(self):
-        self.states = ["open", "pick", "close", "place","wait"]
+        self.states = ["open", "pick", "close", "place"]
         self.current_state_index = 0
 
     def next_state(self):
@@ -71,12 +71,14 @@ class UR5eMotionPlanner:
         self.world_config_inital = WorldConfig.from_dict(load_yaml(join_path(get_world_configs_path(), world_config_file)))
         self.n_obstacle_cuboids = n_obstacle_cuboids
         self.n_obstacle_mesh = n_obstacle_mesh
-        self.motion_gen_config = MotionGenConfig.load_from_robot_config(
-            robot_config_file,
+        self.motion_gen_config = MotionGenConfig.load_from_robot_config( 
+            robot_config_file, 
             interpolation_dt=0.01,
             world_model=self.world_config_inital,
             collision_checker_type=CollisionCheckerType.MESH,
             collision_cache={"obb": self.n_obstacle_cuboids, "mesh": self.n_obstacle_mesh},
+            use_cuda_graph=True,
+            self_collision_check=True,
         )
         self.motion_gen = MotionGen(self.motion_gen_config)
         self.motion_gen.warmup()
@@ -84,6 +86,13 @@ class UR5eMotionPlanner:
     def update_curobo(self, new_wrld) -> None:
         world_config = WorldConfig.from_dict(new_wrld)
         # world_config.add_obstacle(self.world_config_inital.cuboid[0])
+        for obstacle in self.world_config_inital.cuboid:
+            world_config.add_obstacle(obstacle)
+        self.motion_gen.update_world(world_config)
+    
+    def update_curobo(self, new_world_state) -> None:
+        """Update cuRobo's world model with the new environment state."""
+        world_config = WorldConfig.from_dict(new_world_state)
         self.motion_gen.update_world(world_config)
 
     def plan_motion(self, goal_position):
@@ -95,20 +104,23 @@ class UR5eMotionPlanner:
         current_position = RoboJointState.from_position(
             torch.tensor([list(self.get_curpos())], device="cuda:0", dtype=torch.float32))
         current_position.unsqueeze(0)
-        result = self.motion_gen.plan_single(current_position, goal_pose, MotionGenPlanConfig(max_attempts=10000))
+        result = self.motion_gen.plan_single(current_position, goal_pose, MotionGenPlanConfig(max_attempts=5000))
         if result.success.item():
             resulting_plan = result.get_interpolated_plan()
             self.cur_plan = np.array(resulting_plan.position.tolist())
+            return True
         else:
             print(f"Motion planning failed for position: at {goal_position}")
-            print(result)
-            exit()
+            print(f"Error: {result.message}")
+            return False
 
     def get_curpos(self):
         return np.array([self.env.data.qpos[self.env.model.joint(joint).qposadr[0]] for joint in self.env.rev_joint_names[:6]])
     
     def step_plan(self):
         # print(f"Currently in {self.sm.current_state}")
+        world_state, _ = save_world_state(self.env.model, self.env.data, include_set=self.obj_names)
+        self.update_curobo(world_state)
         if not isinstance(self.cur_plan, np.ndarray):
             if self.sm.current_state == "open":
                 curpos = self.get_curpos()
@@ -118,15 +130,15 @@ class UR5eMotionPlanner:
                 self.cur_plan[50:, -1] = np.linspace(1, 0, 150)
                 self.sm.next_state()
                 if self.cur_box_name:
-                    # self.detach_obj()
-                    self.cur_box_name = None
+                     self.detach_obj()
+                     self.cur_box_name = None
             elif self.sm.current_state == "close":
                 curpos = self.get_curpos()
                 curpos = np.append(curpos, 1)
                 self.cur_plan =  np.tile(curpos, (200, 1))
                 self.cur_plan[:50, -1] = 0
                 self.cur_plan[50:, -1] = np.linspace(0, 1, 150)
-                print(self.cur_plan[: , 6])
+    
                 # self.sm.wait()
                 self.sm.next_state()
                 # self.attach_obj(curpos, self.cur_box_name)
@@ -153,7 +165,7 @@ class UR5eMotionPlanner:
         tick = 0
         while (self.env.get_sim_time() < 100.0) and self.env.is_viewer_alive():
             stage, _ = save_world_state(self.env.model, self.env.data, include_set=self.obj_names)
-            # self.update_curobo(stage)
+            self.update_curobo(stage)
             # print(np.array([self.env.data.qpos[6]]))
             if isinstance(self.cur_plan, np.ndarray):
                 if len(self.cur_plan[0]) != 6:
@@ -170,13 +182,13 @@ class UR5eMotionPlanner:
 
     def attach_obj(
         self,
-        sim_js: JointState,
-        cube_name: str
-    ) -> None:
+        sim_js,
+        cube_name):
+        print(f"Attaching {cube_name} to robot")
 
         cu_js = JointState(
             position=self.tensor_args.to_device(sim_js),
-        )
+        ) 
 
         self.motion_gen.attach_objects_to_robot(
             cu_js,
@@ -190,7 +202,7 @@ class UR5eMotionPlanner:
 
 # Usage example:
 if __name__ == "__main__":
-    xml_path = 'assets/ur5e/scene_ur5e_2f140_obj (sution).xml'
+    xml_path = '../assets/ur5e/scene_ur5e_2f140_obj_suction.xml'
     robot_config_file = "ur5e.yml"
     world_config_file = "collision_table.yml"
     

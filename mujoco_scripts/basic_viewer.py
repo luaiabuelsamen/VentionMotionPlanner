@@ -2,7 +2,7 @@ import numpy as np
 from mujoco_parser import MuJoCoParserClass
 
 
-xml_path = './assets/ur5e/scene_ur5e_2f140_obj (sution).xml'
+xml_path = '../assets/ur5e/ur5e_rg2_d435i.xml'
 env = MuJoCoParserClass(name='UR5e with RG2 gripper', rel_xml_path=xml_path, VERBOSE=True)
 
 
@@ -17,5 +17,4 @@ env.update_viewer(azimuth=66.08, distance=3.0, elevation=-50, lookat=[0.4, 0.18,
 
 
 while (env.get_sim_time() < 100.0) and env.is_viewer_alive():
-    env.step([-1.57  ,0.   ,0.    ,1.57  ,0.  ,  0.  , 1.0],[0, 1, 2, 3, 4, 5, 6])
     env.render()
