@@ -2,8 +2,12 @@ import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionServer, ActionClient
 from rclpy.callback_groups import ReentrantCallbackGroup
+from sensor_msgs.msg import JointState as RosJointState
+from std_msgs.msg import Header
+
 import torch
 import numpy as np
+
 from curobo.wrap.reacher.motion_gen import MotionGen, MotionGenConfig, MotionGenPlanConfig
 from curobo.geom.sdf.world import CollisionCheckerType
 from curobo.geom.types import WorldConfig
@@ -12,6 +16,7 @@ from curobo.types.base import TensorDeviceType
 from curobo.types.robot import JointState
 from curobo.types.math import Pose
 from curobo_action.action import MoveJ, MoveL, PublishJoints
+from curobo.geom.types import Mesh
 import time
 
 class CuroboNode(Node):
@@ -74,22 +79,39 @@ class CuroboNode(Node):
         
         self.get_logger().info("Curobo Action Server Ready.")
     
+        self.latest_joint_state = None
+        self.joint_states_subscription = self.create_subscription(
+            RosJointState,
+            'joint_states',
+            self.joint_state_callback,
+            10,
+            callback_group=self.callback_group
+        )
+    
+    def joint_state_callback(self, msg):
+        self.latest_joint_state = list(msg.position)[:-1]
+
     def init_curobo(self):
-        world_config = WorldConfig.from_dict(
+        world_config_initial = WorldConfig.from_dict(
             load_yaml(self.world_config_file)
         )
         
         motion_gen_config = MotionGenConfig.load_from_robot_config(
             self.robot_config_file,
             interpolation_dt=0.01,
-            world_model=world_config,
+            world_model=world_config_initial,
             collision_checker_type=CollisionCheckerType.MESH,
             collision_cache={"obb": self.n_obstacle_cuboids, "mesh": self.n_obstacle_mesh},
         )
         
         self.motion_gen = MotionGen(motion_gen_config)
         self.motion_gen.warmup()
-        
+        stl_file_path = "/home/jetson3/ros2_ws/src/mujoco_curobo/assets/ur5e/mesh/gantry/bs_link.STL"
+        mesh = Mesh(file_path=stl_file_path, name="example_mesh", pose=[0.0, 0.0, -0.12, 1.0, 0.0, 0.0, 0.0])
+        mesh.file_path = stl_file_path
+        world_config = WorldConfig.from_dict({})
+        world_config.add_obstacle(mesh)
+        world_config.add_obstacle(world_config_initial.cuboid[0])
         self.get_logger().info("Curobo MotionGen initialized and warmed up.")
     
     def plan_motion_js(self, start_state, goal_state):
@@ -153,8 +175,19 @@ class CuroboNode(Node):
 
     async def execute_movej(self, goal_handle):
         self.get_logger().info("Executing MoveJ action request")
+        if not goal_handle.request.start_state:
+            if self.latest_joint_state is None:
+                goal_handle.succeed()
+                return MoveJ.Result(
+                    success=False,
+                    result="No joint state received yet. Cannot use current state.",
+                    trajectory=[],
+                    joints=0
+                )
+            start_state = self.latest_joint_state
+        else:
+            start_state = goal_handle.request.start_state
         
-        start_state = goal_handle.request.start_state
         goal_state = goal_handle.request.goal_pose
         success, trajectory, joints, result_str = self.plan_motion_js(start_state, goal_state)
         
@@ -181,7 +214,19 @@ class CuroboNode(Node):
     async def execute_movel(self, goal_handle):
         self.get_logger().info("Executing MoveL action request")
 
-        start_state = goal_handle.request.start_state
+        if not goal_handle.request.start_state:
+            if self.latest_joint_state is None:
+                goal_handle.succeed()
+                return MoveL.Result(
+                    success=False,
+                    result="No joint state received yet. Cannot use current state.",
+                    trajectory=[],
+                    joints=0
+                )
+            start_state = self.latest_joint_state
+        else:
+            start_state = goal_handle.request.start_state
+        
         goal_pose = goal_handle.request.goal_pose
         success, trajectory, joints, result_str = self.plan_motion(start_state, goal_pose)
         

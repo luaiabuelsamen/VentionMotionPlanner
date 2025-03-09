@@ -85,21 +85,24 @@
   </asset>
 
   <worldbody>
-    <!-- Fixed base -->
-    <body name="bs_link" pos="0 0 -0.12">
-      <inertial mass="45" diaginertia="0.9322 15.045 15.888" pos="0 0 0.043056"/>
-      <geom type="mesh" mesh="gantry_base" material="light_gray" contype="1" conaffinity="1"/>
-      
-      <!-- Moving rail -->
-      <body name="linear_rail" pos="0 0 0.12">
-        <joint name="rail_slide" type="slide" axis="1 0 0" pos="0 0 0" limited="true" range="-1 1"/>
-        <inertial mass="7.5" diaginertia="0.050938 0.063438 0.1" pos="0 0 -0.05"/>
-        <geom type="mesh" mesh="gantry_rail" material="light_gray" contype="2" conaffinity="2"/>
-        <body name="ur5e/base" pos="0 0 0" quat="1 0 0 0" childclass="ur5e">
-          <inertial mass="4" pos="0 0 0" diaginertia="0.00443333156 0.00443333156 0.0072"/>
-          <geom mesh="base_0" material="black" class="visual"/>
-          <geom mesh="base_1" material="jointgray" class="visual"/>
-            <body name="shoulder_link" pos="0 0 0.163">
+      <!-- Fixed base -->
+      <body name="bs_link" pos="0 0 -0.12">
+        <inertial mass="45" diaginertia="0.9322 15.045 15.888" pos="0 0 0.043056"/>
+        <geom type="mesh" mesh="gantry_base" material="light_gray" contype="1" conaffinity="1"/>
+        
+        <!-- Moving rail -->
+        <body name="linear_rail" pos="0 0 0.12">
+          <!-- Added damping to the rail_slide joint -->
+          <joint name="rail_slide" type="slide" axis="1 0 0" pos="0 0 0" limited="true" range="-1 1" damping="5"/>
+          <inertial mass="7.5" diaginertia="0.050938 0.063438 0.1" pos="0 0 -0.05"/>
+          <geom type="mesh" mesh="gantry_rail" material="light_gray" contype="2" conaffinity="2"/>
+          
+            <!-- Robot base -->
+            <body name="ur5e/base" pos="0 0 0" quat="1 0 0 0" childclass="ur5e">
+              <inertial mass="4" pos="0 0 0" diaginertia="0.00443333156 0.00443333156 0.0072"/>
+              <geom mesh="base_0" material="black" class="visual"/>
+              <geom mesh="base_1" material="jointgray" class="visual"/>
+              <body name="shoulder_link" pos="0 0 0.163">
               <inertial mass="3.7" pos="0 0 0" diaginertia="0.0102675 0.0102675 0.00666"/>
               <joint name="shoulder_pan_joint" axis="0 0 1"/>
               <site name="shoulder_pan_joint"/>
