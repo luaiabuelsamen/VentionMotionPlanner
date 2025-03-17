@@ -10,3 +10,11 @@ ur5e_with_gantry:
     update_world:
       - bs_link
       - linear_rail
+
+ur5e_with_suction:
+  curobo:
+    world_config_file: config/curobo/world_config/table.yml
+    robot_config_file: ur5e.yml
+  mujoco:
+    xml_path: assets/ur5e/scene_ur5e_2f140_obj_suction.xml
+    update_world: [cube_1, col_1]

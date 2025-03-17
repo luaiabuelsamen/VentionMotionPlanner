@@ -1,10 +1,4 @@
 <mujocoinclude>
-    <default>
-        <geom type="box" friction=".5"/>
-        <default class="object">
-            <geom rgba=".5 .8 .5 1" density="100"/>
-        </default>
-    </default>
     <worldbody>
         <!-- Adding Free Cubes with updated sizes -->
         <body name="cube_1" pos="0.50 0.0 0.035">

@@ -147,8 +147,10 @@
                       <site name="attachment_site" rgba="1 0 0 1" size="0.01" group="1"/>
                       <body name="vacuum_gripper" pos="0 0 0">
                         <body name="suction_pad" pos="0 0 0.01" childclass="active_adhesion"> 
-                          <geom name="suction_surface" type="box" size="0.05 0.05 0.005" material="gray"/>
-                          <site name="force_sensor" pos="0 0 0" size="0.01" rgba="0 1 0 0"/>
+                          <geom name="suction_surface_1" type="box" pos="0.04 0.04 0.0" size="0.04 0.04 0.01" material="gray" friction="2.5 0.3 0.05" solimp="0.95 0.99 0.0001" solref="0.005 4"/>
+                          <geom name="suction_surface_2" type="box" pos="-0.04 0.04 0.0" size="0.04 0.04 0.01" material="gray" friction="2.5 0.3 0.05" solimp="0.95 0.99 0.0001" solref="0.005 4"/>
+                          <geom name="suction_surface_3" type="box" pos="-0.04 -0.04 0.0" size="0.04 0.04 0.01" material="gray" friction="2.5 0.3 0.05" solimp="0.95 0.99 0.0001" solref="0.005 4"/>
+                          <geom name="suction_surface_4" type="box" pos="0.04 -0.04 0.0" size="0.04 0.04 0.01" material="gray" friction="2.5 0.3 0.05" solimp="0.95 0.99 0.0001" solref="0.005 4"/>
                         </body>
                       </body>
                     </body>
@@ -169,7 +171,7 @@
     <position class="position_small" name="wrist_1_position" joint="wrist_1_joint"/>
     <position class="position_small" name="wrist_2_position" joint="wrist_2_joint"/>
     <position class="position_small" name="wrist_3_position" joint="wrist_3_joint"/>
-    <adhesion name="suction" body="suction_pad" ctrlrange="0 1" gain="2500"/>
+    <adhesion name="suction" body="suction_pad" ctrlrange="0 1" gain="100"/>
   </actuator>
 
 </mujoco>

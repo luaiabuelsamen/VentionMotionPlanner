@@ -17,6 +17,8 @@ from curobo.types.robot import JointState
 from curobo.types.math import Pose
 from curobo_action.action import MoveJ, MoveL, PublishJoints
 from curobo.geom.types import Mesh
+from std_msgs.msg import String
+import json
 import time
 
 class CuroboNode(Node):
@@ -92,27 +94,36 @@ class CuroboNode(Node):
         self.latest_joint_state = list(msg.position)[:-1]
 
     def init_curobo(self):
-        world_config_initial = WorldConfig.from_dict(
+        self.world_config_initial = WorldConfig.from_dict(
             load_yaml(self.world_config_file)
         )
         
         motion_gen_config = MotionGenConfig.load_from_robot_config(
             self.robot_config_file,
             interpolation_dt=0.01,
-            world_model=world_config_initial,
+            world_model=self.world_config_initial,
             collision_checker_type=CollisionCheckerType.MESH,
+            collision_max_outside_distance = 0.0,
+            collision_activation_distance = 0.0,
             collision_cache={"obb": self.n_obstacle_cuboids, "mesh": self.n_obstacle_mesh},
         )
         
         self.motion_gen = MotionGen(motion_gen_config)
         self.motion_gen.warmup()
-        stl_file_path = "/home/jetson3/ros2_ws/src/mujoco_curobo/assets/ur5e/mesh/gantry/bs_link.STL"
-        mesh = Mesh(file_path=stl_file_path, name="example_mesh", pose=[0.0, 0.0, -0.12, 1.0, 0.0, 0.0, 0.0])
-        mesh.file_path = stl_file_path
-        world_config = WorldConfig.from_dict({})
-        world_config.add_obstacle(mesh)
-        world_config.add_obstacle(world_config_initial.cuboid[0])
+        #stl_file_path = "/home/jetson3/ros2_ws/src/mujoco_curobo/assets/ur5e/mesh/gantry/bs_link.STL"
+        #mesh = Mesh(file_path=stl_file_path, name="example_mesh", pose=[0.0, 0.0, -0.12, 1.0, 0.0, 0.0, 0.0])
+        #mesh.file_path = stl_file_path
+        #world_config = WorldConfig.from_dict({})
+        #world_config.add_obstacle(mesh)
+        #world_config.add_obstacle(world_config_initial.cuboid[0])
+        self.subscription = self.create_subscription(String, 'world_state_json', self.world_callback, 10)
         self.get_logger().info("Curobo MotionGen initialized and warmed up.")
+    
+    def world_callback(self, msg):
+        mujoco_dict = json.loads(msg.data)
+        new_world = WorldConfig.from_dict(mujoco_dict)
+        new_world.add_obstacle(self.world_config_initial.cuboid[0])
+        self.motion_gen.update_world(new_world)
     
     def plan_motion_js(self, start_state, goal_state):
         current_state = JointState.from_position(torch.tensor([start_state], device="cuda:0", dtype=torch.float32))

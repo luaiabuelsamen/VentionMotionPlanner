@@ -5,12 +5,14 @@ import rclpy
 from rclpy.node import Node
 import numpy as np
 from mujoco_api.mujoco_parser import MuJoCoParserClass
+from mujoco_api.util import save_world_state
 from sensor_msgs.msg import JointState
 from std_msgs.msg import Header
 from rclpy.action import ActionServer, CancelResponse, GoalResponse
 from rclpy.callback_groups import ReentrantCallbackGroup
 from curobo_action.action import PublishJoints
-import time
+from std_msgs.msg import String
+import json
 
 class MujocoNode(Node):
     def __init__(self):
@@ -20,13 +22,12 @@ class MujocoNode(Node):
         self.declare_parameter('publish_rate', 50.0)  # Hz
         self.declare_parameter('default_positions', [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         self.declare_parameter('meshes', [])  # List of meshes (each as a dictionary)
-        self.declare_parameter('update_world', [])  # List of objects to update in the world
+        self.declare_parameter('update_world', ['None'])  # List of objects to update in the world
         self.xml_path = self.get_parameter('xml_path').value
         self.publish_rate = self.get_parameter('publish_rate').value
         default_positions = self.get_parameter('default_positions').value
         self.meshes = self.get_parameter('meshes').value
         self.update_world = self.get_parameter('update_world').value
-
         self.joint_state_publisher = self.create_publisher(
             JointState,
             'joint_states',
@@ -61,12 +62,20 @@ class MujocoNode(Node):
             self.target_indices = list(range(len(self.target_positions)))
             self.step_timer = self.create_timer(0.01, self.step_simulation, callback_group=self.callback_group)
             self.publish_timer = self.create_timer(1.0/self.publish_rate, self.publish_joint_states, callback_group=self.callback_group)
-            
+            self.publisher = self.create_publisher(String, 'world_state_json', 10)
+            self.timer = self.create_timer(0.1, self.publish_state)
+            self.mujoco_dict = None
             self.get_logger().info('MuJoCo viewer and joint state publisher initialized successfully')
             
         except Exception as e:
             self.get_logger().error(f'Failed to initialize MuJoCo environment: {str(e)}')
     
+    def publish_state(self):
+        if self.mujoco_dict:
+            msg = String()
+            msg.data = json.dumps(self.mujoco_dict)
+            self.publisher.publish(msg)
+
     def goal_callback(self, goal_request):
         if not hasattr(self, 'env'):
             self.get_logger().error('Cannot accept goal: MuJoCo environment not initialized')
@@ -123,6 +132,8 @@ class MujocoNode(Node):
                 self.env.step(self.target_positions, self.target_indices)
             
             self.env.render()
+            stage, meshes = save_world_state(self.env.model, self.env.data, include_set=self.update_world)
+            self.mujoco_dict = stage
         else:
             self.step_timer.cancel()
             self.publish_timer.cancel()

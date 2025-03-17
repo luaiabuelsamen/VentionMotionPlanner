@@ -34,11 +34,7 @@ def save_world_state(model, data, ignore_set=None, include_set=None):
                         }
                     elif geom_type == mujoco.mjtGeom.mjGEOM_BOX:
                         # Here is where you adjust the position to the edge
-                        cube_size = [2 * s for s in geom_size[:3]]  # Convert half-size to full-size
-                        
-                        # Adjust the position to the edge (subtract half the size in z)
-                        pose[2] += cube_size[2] / 2   # Correct for edge alignment along z-axis
-                        
+                        cube_size = [ s for s in geom_size[:3]]  # Convert half-size to full-size
                         stage.setdefault('cuboid', {})[body_name] = {
                             "dims": cube_size,
                             "pose": pose,

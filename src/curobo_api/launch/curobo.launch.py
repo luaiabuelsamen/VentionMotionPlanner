@@ -49,7 +49,7 @@ def configure_nodes(context, *args, **kwargs):
                                 parameters=[{
                                     'xml_path': mujoco_xml_path,
                                     # 'meshes': mujoco_meshes,
-                                    # 'update_world': mujoco_update_world,
+                                    'update_world': mujoco_update_world,
                                     'publish_rate': 50.0,
                                     'default_positions': [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
                                 }]
