@@ -116,6 +116,7 @@
 
 
   <!-- links: main serial chain -->
+  <link name="ur_base_link"/>
   <link name="bs_link">
     <inertial>
       <origin rpy="0 0 0" xyz="1.1102E-16 2.7756E-16 0.043056"/>
@@ -160,7 +161,6 @@
       </geometry>
     </collision>
   </link>
-  <link name="ur_base_link"/>
   <link name="ur_base_link_inertia">
     <visual>
       <origin rpy="0 0 3.141592653589793" xyz="0 0 0"/>
@@ -318,6 +318,13 @@
   </link>
 
   <!-- joints: main serial chain -->
+  <joint name="base" type="fixed">
+    <origin rpy="0 0 0.0" xyz="0 0 0"/>
+    <parent link="ur_base_link"/>
+    <child link="bs_link"/>
+    <axis xyz="0 0 0"/>
+  </joint>
+
   <joint name="linear_rail" type="prismatic">
     <origin rpy="0 0 0" xyz="-0.0085429 0 0.125"/>
     <parent link="bs_link"/>
@@ -328,20 +335,20 @@
   <!-- Define the connection between your gantry and the UR5e base -->
   <joint name="linear_rail_to_ur_base" type="fixed">
     <parent link="linear_rail"/>
-    <child link="ur_base_link"/>
+    <child link="ur_base_link_inertia"/>
     <origin rpy="0 0 0" xyz="0 0 0"/>
   </joint>
 
-  <joint name="ur_base_link-base_link_inertia" type="fixed">
+  <!-- <joint name="ur_base_link-base_link_inertia" type="fixed">
     <parent link="ur_base_link"/>
-    <child link="ur_base_link_inertia"/>
+    <child link="ur_base_link_inertia"/> -->
     <!-- 'base_link' is REP-103 aligned (so X+ forward), while the internal
            frames of the robot/controller have X+ pointing backwards.
            Use the joint between 'base_link' and 'base_link_inertia' (a dummy
            link/frame) to introduce the necessary rotation over Z (of pi rad).
       -->
-    <origin rpy="0 0 3.141592653589793" xyz="0 0 0"/>
-  </joint>
+    <!-- <origin rpy="0 0 3.141592653589793" xyz="0 0 0"/>
+  </joint> -->
   <joint name="ur_shoulder_pan_joint" type="revolute">
     <parent link="ur_base_link_inertia"/>
     <child link="ur_shoulder_link"/>

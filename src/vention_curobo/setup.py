@@ -26,6 +26,7 @@ setup(
             'vention_node = vention_curobo.vention_node:main',
             'ur5e_joint_state_publisher = vention_curobo.ur5e_joint_state_publisher:main',
             'pick_and_place = vention_curobo.pick_and_place:main',
+            'pick_and_place_moveit = vention_curobo.pick_and_place_moveit:main',
         ],
     },
 )
