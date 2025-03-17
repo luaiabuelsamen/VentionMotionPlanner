@@ -1,0 +1,25 @@
+moveit_setup_assistant_config:
+  urdf:
+    package: gantry
+    relative_path: urdf/gantry.urdf
+  srdf:
+    relative_path: config/gantry.srdf
+  package_settings:
+    author_name: harsh
+    author_email: harsh.ajay@berkeley.edu
+    generated_timestamp: 1742179510
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
+  modified_urdf:
+    xacros:
+      - control_xacro
+  control_xacro:
+    command:
+      - position
+    state:
+      - position
+      - velocity
