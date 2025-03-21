@@ -6,7 +6,7 @@ from scipy.spatial.distance import cdist
 import mujoco
 from curobo.geom.types import Mesh
 
-def save_world_state(model, data, ignore_set=None, include_set=None):
+def save_world_state(model, data, ignore_set=None, include_set=None, mesh_paths=None):
     stage = {}
     meshes = []
     for i in range(model.nbody):
@@ -40,27 +40,34 @@ def save_world_state(model, data, ignore_set=None, include_set=None):
                             "pose": pose,
                         }
                     elif geom_type == mujoco.mjtGeom.mjGEOM_MESH:
-                        print(pose)
-                        mesh_id = model.geom_dataid[j]
+                        #print(body_name)
+                        #print(mesh_paths)
+                        if body_name in mesh_paths:
+
+                            stage.setdefault('mesh', {})[body_name] = {
+                                "file_path": mesh_paths[body_name],
+                                "pose": pose,
+                            }
+                        #mesh_id = model.geom_dataid[j]
                         
                         # Extract vertices
-                        vert_start = model.mesh_vertadr[mesh_id]
-                        vert_end = vert_start + model.mesh_vertnum[mesh_id]
-                        vertices = model.mesh_vert[vert_start:vert_end].reshape(-1, 3).tolist()
+                        #vert_start = model.mesh_vertadr[mesh_id]
+                        #vert_end = vert_start + model.mesh_vertnum[mesh_id]
+                        #vertices = model.mesh_vert[vert_start:vert_end].reshape(-1, 3).tolist()
 
                         # Extract faces
-                        face_start = model.mesh_faceadr[mesh_id]
-                        face_end = face_start + model.mesh_facenum[mesh_id]
-                        faces = model.mesh_face[face_start:face_end].reshape(-1, 3).tolist()
+                        #face_start = model.mesh_faceadr[mesh_id]
+                        #face_end = face_start + model.mesh_facenum[mesh_id]
+                        #faces = model.mesh_face[face_start:face_end].reshape(-1, 3).tolist()
 
                         # Create Mesh object
-                        mesh_obj = Mesh(
-                            pose=pose,
-                            name=geom_name,
-                            vertices=vertices,
-                            faces=faces,
-                        )
-                        meshes.append(mesh_obj)
+                        #mesh_obj = Mesh(
+                           # pose=pose,
+                            #name=geom_name,
+                            #vertices=vertices,
+                            #faces=faces,
+                        #)
+                        #meshes.append(mesh_obj)
     return stage, meshes
 
 def rot_mtx(deg):

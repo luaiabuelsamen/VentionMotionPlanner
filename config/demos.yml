@@ -5,8 +5,8 @@ ur5e_with_gantry:
   mujoco:
     xml_path: assets/ur5e/scene_ur5e_2f140_obj_gantry.xml
     meshes:
-      - bs_link: assets/ur5e/mesh/gantry/bs_link.STL
-      - linear_rail: assets/ur5e/mesh/gantry/linear_rail.STL
+      bs_link: assets/ur5e/mesh/gantry/bs_link.STL
+      linear_rail: assets/ur5e/mesh/gantry/linear_rail.STL
     update_world:
       - bs_link
       - linear_rail
@@ -17,4 +17,5 @@ ur5e_with_suction:
     robot_config_file: ur5e.yml
   mujoco:
     xml_path: assets/ur5e/scene_ur5e_2f140_obj_suction.xml
-    update_world: [cube_1, col_1]
+    #update_world: [cube_1, col_1]
+    update_world: [None]

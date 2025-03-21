@@ -21,12 +21,23 @@ class MujocoNode(Node):
         self.declare_parameter('xml_path', './src/mujoco_curobo/assets/ur5e/scene_ur5e_2f140_obj_gantry.xml')
         self.declare_parameter('publish_rate', 50.0)  # Hz
         self.declare_parameter('default_positions', [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        self.declare_parameter('meshes', [])  # List of meshes (each as a dictionary)
+        #self.declare_parameter('meshes', [])  # List of meshes (each as a dictionary)
         self.declare_parameter('update_world', ['None'])  # List of objects to update in the world
         self.xml_path = self.get_parameter('xml_path').value
         self.publish_rate = self.get_parameter('publish_rate').value
         default_positions = self.get_parameter('default_positions').value
-        self.meshes = self.get_parameter('meshes').value
+
+        reconstructed_dict = {}
+        self.declare_parameter('meshes', ['None']) 
+        mesh = self.get_parameter('meshes').value
+        for i in range(0, len(mesh)):
+            # Make sure we don't go out of bounds
+            if i + 1 < len(mesh):
+                key = mesh [i]
+                value = mesh [i + 1]
+                reconstructed_dict[key] = value
+
+        self.meshes = reconstructed_dict
         self.update_world = self.get_parameter('update_world').value
         self.joint_state_publisher = self.create_publisher(
             JointState,
@@ -66,6 +77,7 @@ class MujocoNode(Node):
             self.timer = self.create_timer(0.1, self.publish_state)
             self.mujoco_dict = None
             self.get_logger().info('MuJoCo viewer and joint state publisher initialized successfully')
+
             
         except Exception as e:
             self.get_logger().error(f'Failed to initialize MuJoCo environment: {str(e)}')
@@ -132,7 +144,7 @@ class MujocoNode(Node):
                 self.env.step(self.target_positions, self.target_indices)
             
             self.env.render()
-            stage, meshes = save_world_state(self.env.model, self.env.data, include_set=self.update_world)
+            stage, meshes = save_world_state(self.env.model, self.env.data, include_set=self.update_world, mesh_paths = self.meshes)
             self.mujoco_dict = stage
         else:
             self.step_timer.cancel()
