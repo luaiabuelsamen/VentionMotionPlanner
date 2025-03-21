@@ -91,7 +91,7 @@ class CuroboNode(Node):
         )
     
     def joint_state_callback(self, msg):
-        self.latest_joint_state = list(msg.position)[:-1]
+        self.latest_joint_state = list(msg.position)[:]
 
     def init_curobo(self):
         self.world_config_initial = WorldConfig.from_dict(
@@ -110,18 +110,20 @@ class CuroboNode(Node):
         
         self.motion_gen = MotionGen(motion_gen_config)
         self.motion_gen.warmup()
-        #stl_file_path = "/home/jetson3/ros2_ws/src/mujoco_curobo/assets/ur5e/mesh/gantry/bs_link.STL"
-        #mesh = Mesh(file_path=stl_file_path, name="example_mesh", pose=[0.0, 0.0, -0.12, 1.0, 0.0, 0.0, 0.0])
-        #mesh.file_path = stl_file_path
-        #world_config = WorldConfig.from_dict({})
-        #world_config.add_obstacle(mesh)
-        #world_config.add_obstacle(world_config_initial.cuboid[0])
         self.subscription = self.create_subscription(String, 'world_state_json', self.world_callback, 10)
         self.get_logger().info("Curobo MotionGen initialized and warmed up.")
     
     def world_callback(self, msg):
         mujoco_dict = json.loads(msg.data)
+        meshes = {}
+        if 'mesh' in mujoco_dict:
+            meshes = mujoco_dict['mesh']
+            del mujoco_dict['mesh']
         new_world = WorldConfig.from_dict(mujoco_dict)
+        for mesh in meshes:
+            cur_mesh = Mesh(file_path=meshes[mesh]['file_path'], name=mesh, pose=meshes[mesh]['pose'])
+            cur_mesh.file_path = meshes[mesh]['file_path']
+            new_world.add_obstacle(cur_mesh)
         new_world.add_obstacle(self.world_config_initial.cuboid[0])
         self.motion_gen.update_world(new_world)
     

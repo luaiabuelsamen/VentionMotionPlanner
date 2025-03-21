@@ -12,7 +12,6 @@ def save_world_state(model, data, ignore_set=None, include_set=None, mesh_paths=
     for i in range(model.nbody):
         body_name_start = model.name_bodyadr[i]
         body_name = model.names[body_name_start:].split(b'\x00', 1)[0].decode('utf-8')
-        
         if body_name and body_name in include_set:
             body_pos = data.xpos[i]
             body_quat = data.xquat[i]
@@ -40,8 +39,8 @@ def save_world_state(model, data, ignore_set=None, include_set=None, mesh_paths=
                             "pose": pose,
                         }
                     elif geom_type == mujoco.mjtGeom.mjGEOM_MESH:
-                        #print(body_name)
-                        #print(mesh_paths)
+                        # print(body_name)
+                        # print(mesh_paths)
                         if body_name in mesh_paths:
 
                             stage.setdefault('mesh', {})[body_name] = {

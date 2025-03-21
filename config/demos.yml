@@ -19,3 +19,13 @@ ur5e_with_suction:
     xml_path: assets/ur5e/scene_ur5e_2f140_obj_suction.xml
     #update_world: [cube_1, col_1]
     update_world: [None]
+
+ur5e_with_vention:
+  curobo:
+    world_config_file: config/curobo/world_config/floor.yml
+    robot_config_file: ur5e.yml
+  mujoco:
+    xml_path: assets/ur5e/scene_ur5e.xml
+    meshes:
+      vention: assets/ur5e/mesh/vention/simplified_model.stl
+    update_world: ['vention']
