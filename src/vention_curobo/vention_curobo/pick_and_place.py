@@ -98,7 +98,7 @@ class UR5ePickPlaceNode(Node):
         # place_state = CuRoboJointState.from_position(place_position)
         
         # Pick position
-        pick_pos = torch.tensor([[-0.5, -0.5, -0.1]], device=tensor_args.device)
+        pick_pos = torch.tensor([[-0.5, -0.5, 0.5]], device=tensor_args.device)
         # Downward-facing orientation (gripper pointing down)
         pick_quat = torch.tensor([self.quaternion_from_euler(np.pi, 0.0, 0.0)], device=tensor_args.device)
 
