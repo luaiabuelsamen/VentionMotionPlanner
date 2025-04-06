@@ -1,0 +1,9 @@
+# planning_pipeline.yaml
+planning_pipelines:
+  pipeline_names: [ompl, pilz_industrial_motion_planner]
+
+planning_plugins:
+  - ompl_interface/OMPLPlanner
+  - pilz_industrial_motion_planner/CommandPlanner
+  
+default_planning_pipeline: pilz_industrial_motion_planner  # Set PILZ as default
