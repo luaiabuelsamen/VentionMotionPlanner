@@ -91,7 +91,7 @@ class CuroboNode(Node):
         )
     
     def joint_state_callback(self, msg):
-        self.latest_joint_state = list(msg.position)[:]
+        self.latest_joint_state = list(msg.position)[:-1]
 
     def init_curobo(self):
         self.world_config_initial = WorldConfig.from_dict(
@@ -115,6 +115,7 @@ class CuroboNode(Node):
     
     def world_callback(self, msg):
         mujoco_dict = json.loads(msg.data)
+        #self.get_logger().info(str(mujoco_dict))
         meshes = {}
         if 'mesh' in mujoco_dict:
             meshes = mujoco_dict['mesh']

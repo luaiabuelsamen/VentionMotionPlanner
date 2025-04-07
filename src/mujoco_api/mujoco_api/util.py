@@ -33,7 +33,7 @@ def save_world_state(model, data, ignore_set=None, include_set=None, mesh_paths=
                         }
                     elif geom_type == mujoco.mjtGeom.mjGEOM_BOX:
                         # Here is where you adjust the position to the edge
-                        cube_size = [ s for s in geom_size[:3]]  # Convert half-size to full-size
+                        cube_size = [2*s for s in geom_size[:3]]  # Convert half-size to full-size
                         stage.setdefault('cuboid', {})[body_name] = {
                             "dims": cube_size,
                             "pose": pose,

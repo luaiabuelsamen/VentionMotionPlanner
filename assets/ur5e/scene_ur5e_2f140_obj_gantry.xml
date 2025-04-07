@@ -1,11 +1,11 @@
 <mujoco model="ur5e scene">
   <option gravity="0 0 -9.81"/>
   <!-- UR5e -->
-  <include file="./ur5e_2f140_x.xml"/>
-  
+  <!-- <include file="./ur5e_2f140_x.xml"/> -->
+  <include file="./ur5e_2f140_gentry_with_suction.xml"/> 
   <!-- Cylinder objects -->
-  <!-- <include file="../object/obj_cube.xml" /> -->
-
+  <include file="../object/obj_cube.xml" />
+  <include file="../object/collision.xml" />
   <!-- Floor and Sky -->
   <include file="../object/floor_sky_below_zero.xml" />
 

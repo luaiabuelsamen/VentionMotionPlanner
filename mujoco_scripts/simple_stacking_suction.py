@@ -40,7 +40,7 @@ class UR5eMotionPlanner:
         # Initialize MuJoCo and Curobo configurations
         self.env = MuJoCoParserClass(name='UR5e', rel_xml_path=xml_path)
         self.init_curobo(robot_config_file, world_config_file)
-        self.sm = StateMachine()
+        self.sm = StateMachine()    
 
         # Set up initial positions of cubes and environment
         self.obj_names = [body_name for body_name in self.env.body_names if body_name.startswith("cube")]
@@ -52,14 +52,14 @@ class UR5eMotionPlanner:
         
         # Initialize robot and environment
         self.platform_xyz = np.random.uniform([-0.5, -0.5, 0.01], [-0.5, -0.5, 0.01])
-        self.env.model.body('rail').pos = np.array([0, 0, 0])
+        # self.env.model.body('rail').pos = np.array([0, 0, 0.1])
         self.q_init_upright = np.array([0, -np.pi / 2, 0, 0, np.pi / 2, 0])
         self.env.reset()
         self.env.forward(q=self.q_init_upright, joint_idxs=self.env.idxs_forward)
         
         # Initialize planning variables
         self.cur_plan = None
-        self.place = [0.50, 0.0, 0.05]
+        self.place = [0.50, -0.50, 0.05]
         self.current_position = RoboJointState.from_position(
             torch.tensor(np.array([self.q_init_upright]), device=tensor_device, dtype=torch.float32))
         self.cur_box_name = None
@@ -96,8 +96,10 @@ class UR5eMotionPlanner:
     def plan_motion(self, goal_position, approach_offset=0.0):
         goal_position[2] += 0.05
         # Add gripper offset and any approach offset for pre-grasp positioning
-        offset = np.array([0.0, 0.0, 0.13])
+        offset = np.array([0.0, 0.0, -0.015])
         goal_position = np.array(goal_position) + offset
+        print("Planned XYZ waypoint:", goal_position.tolist())
+
 
         goal_pose = Pose(
             position=self.tensor_args.to_device([goal_position]),
@@ -117,77 +119,7 @@ class UR5eMotionPlanner:
             exit()
 
     def get_curpos(self):
-        return np.array([self.env.data.qpos[self.env.model.joint(joint).qposadr[0]] for joint in self.env.rev_joint_names[:6]])
-
-    # def activate_weld(self, cube_name: str):
-    #     """
-    #     Activate welding constraint between vacuum gripper and specified cube.
-    #     Updates both MuJoCo model and XML file.
-    #     """
-    #     # Update MuJoCo model state
-    #     weld_name = f"weld_{cube_name}"
-    #     weld_id = mujoco.mj_name2id(self.env.model, mujoco.mjtObj.mjOBJ_EQUALITY, weld_name)
-        
-    #     if weld_id != -1:
-    #         # Update MuJoCo model
-    #         self.env.model.eq_active0[weld_id] = 1
-            
-    #         try:
-    #             # Update XML file
-    #             tree = ET.parse(self.xml_path)
-    #             root = tree.getroot()
-                
-    #             # Find and update the weld constraint
-    #             for equality in root.findall('.//equality'):
-    #                 for weld in equality.findall('weld'):
-    #                     if weld.get('name') == weld_name:
-    #                         current_state = weld.get('active')
-    #                         print(f"Current weld state for {weld_name}: {current_state}")
-    #                         weld.set('active', 'true')
-    #                         print(f"Updated weld state for {weld_name} to: true")
-                
-    #             # Save the modified XML
-    #             tree.write(self.xml_path)
-    #             print(f"Welding activated for {cube_name}")
-    #         except Exception as e:
-    #             print(f"Error updating XML file: {e}")
-    #     else:
-    #         print(f"Error: Weld constraint '{weld_name}' not found!")
-
-    # def deactivate_weld(self, cube_name: str):
-    #     """
-    #     Deactivate welding constraint.
-    #     Updates both MuJoCo model and XML file.
-    #     """
-    #     # Update MuJoCo model state
-    #     weld_name = f"weld_{cube_name}"
-    #     weld_id = mujoco.mj_name2id(self.env.model, mujoco.mjtObj.mjOBJ_EQUALITY, weld_name)
-        
-    #     if weld_id != -1:
-    #         # Update MuJoCo model
-    #         self.env.model.eq_active0[weld_id] = 0
-            
-    #         try:
-    #             # Update XML file
-    #             tree = ET.parse(self.xml_path)
-    #             root = tree.getroot()
-                
-    #             # Find and update the weld constraint
-    #             for equality in root.findall('.//equality'):
-    #                 for weld in equality.findall('weld'):
-    #                     if weld.get('name') == weld_name:
-    #                         current_state = weld.get('active')
-    #                         print(f"Current weld state for {weld_name}: {current_state}")
-    #                         weld.set('active', 'false')
-    #                         print(f"Updated weld state for {weld_name} to: false")
-                
-    #             # Save the modified XML
-    #             tree.write(self.xml_path)
-    #             print(f"Welding deactivated for {cube_name}")
-    #         except Exception as e:
-    #             print(f"Error updating XML file: {e}")
-    #     else:
-    #         print(f"Error: Weld constraint '{weld_name}' not found!")
+        return np.array([self.env.data.qpos[self.env.model.joint(joint).qposadr[0]] for joint in self.env.rev_joint_names[:7]])
 
     def step_plan(self):
         if not isinstance(self.cur_plan, np.ndarray):
@@ -195,15 +127,17 @@ class UR5eMotionPlanner:
                 if self.posns:
                     print("Planning approach")
                     self.pick_pos, self.cur_box_name = self.posns.popleft()
-                    self.plan_motion(self.pick_pos, approach_offset=0.05)  # Add offset for approach
+                    self.plan_motion(self.pick_pos, approach_offset=0.2)  # Add offset for approach
                     self.sm.next_state()
                     
             elif self.sm.current_state == "pick":
                 print("Planning pick")
                 self.plan_motion(self.pick_pos)  # Move to exact position
                 # Extract cube number from name (e.g., "cube_1" -> "cube1")
+                # Attach object to robot in Curobo
                 cube_name = self.cur_box_name.replace("_", "")
-                # self.activate_weld(cube_name)
+                #sim_js = self.get_curpos()
+                #self.attach_obj()
                 #APPEND 1
                 self.sm.next_state()
                 
@@ -227,8 +161,9 @@ class UR5eMotionPlanner:
                 print("Placing")
                 # Extract cube number from name (e.g., "cube_1" -> "cube1")
                 cube_name = self.cur_box_name.replace("_", "")
-                # self.deactivate_weld(cube_name)
+
                 #APPEND 0
+                #self.detach_obj()
                 self.place[2] += 0.06  # Increment height for next cube
                 curpos = self.get_curpos()
                 self.cur_plan = np.tile(curpos, (100, 1))  # Hold position briefly
@@ -277,7 +212,7 @@ class UR5eMotionPlanner:
 
 # Usage example:
 if __name__ == "__main__":
-    xml_path = '../assets/ur5e/scene_ur5e_2f140_obj_suction.xml'
+    xml_path = '/home/jetson3/ros2_ws/assets/ur5e/scene_ur5e_2f140_obj_gantry.xml'
     robot_config_file = "ur5e.yml"
     world_config_file = "collision_table.yml"
     

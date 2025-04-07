@@ -274,3 +274,5 @@
     <position name="fingers_actuator" joint="finger_joint" ctrlrange="0 0.7" kp="30"/>
   </actuator>
 </mujoco>
+
+

@@ -2,7 +2,7 @@ import numpy as np
 from mujoco_parser import MuJoCoParserClass
 
 
-xml_path = '../assets/ur5e/ur5e_rg2_d435i.xml'
+xml_path = '../assets/ur5e/scene_ur5e_2f140_obj_gantry.xml'
 env = MuJoCoParserClass(name='UR5e with RG2 gripper', rel_xml_path=xml_path, VERBOSE=True)
 
 
