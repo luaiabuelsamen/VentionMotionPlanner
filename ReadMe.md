@@ -61,6 +61,6 @@ Build the workspace before launching:
 
 ```bash
 cd ~/ros2_ws
-colcon build
+colcon build --symlink-install
 source install/setup.bash
 ```
