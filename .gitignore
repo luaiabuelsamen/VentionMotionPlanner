@@ -2,5 +2,6 @@ __pycache__
 build
 install
 log
-
+logs
 src/motion_plan/motion_plan/CAD/base_link.STL
+assets/ur5e/mesh/vention

@@ -9,8 +9,8 @@ ur5e_with_gantry:
       linear_rail: assets/ur5e/mesh/gantry/linear_rail.STL
     #update_world: [None]
     update_world:
-      #- bs_link
-      #- linear_rail
+      - bs_link
+      - linear_rail
       - col_1
       - col_3
       - col_2

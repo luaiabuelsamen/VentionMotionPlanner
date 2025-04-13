@@ -25,6 +25,8 @@ class CuroboMotionPlanner(Node):
     def __init__(self):
         super().__init__('curobo_motion_planner')
         joint_names = [
+            ""
+            "linear_rail"
             "shoulder_pan_joint",
             "shoulder_lift_joint",
             "elbow_joint",

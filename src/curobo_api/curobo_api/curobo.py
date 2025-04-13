@@ -7,9 +7,12 @@ from std_msgs.msg import Header
 
 import torch
 import numpy as np
+import time
 
 from curobo.wrap.reacher.motion_gen import MotionGen, MotionGenConfig, MotionGenPlanConfig
 from curobo.geom.sdf.world import CollisionCheckerType
+from curobo.wrap.reacher.mpc import MpcSolver, MpcSolverConfig
+from curobo.rollout.rollout_base import Goal
 from curobo.geom.types import WorldConfig
 from curobo.util_file import get_world_configs_path, join_path, load_yaml
 from curobo.types.base import TensorDeviceType
@@ -76,12 +79,20 @@ class CuroboNode(Node):
         self.get_logger().info("Waiting for PublishJoints action server...")
         if not self._action_client.wait_for_server(timeout_sec=5.0):
             self.get_logger().warn("PublishJoints action server not available after 5 seconds")
+            self.joint_state_publisher = self.create_publisher(
+                RosJointState,
+                'joint_states',
+                10
+            )
+            self.mujoco = False
         else:
             self.get_logger().info("PublishJoints action server connected")
+            self.joint_state_publisher = None
+            self.mujoco = True
         
         self.get_logger().info("Curobo Action Server Ready.")
     
-        self.latest_joint_state = None
+        self.latest_joint_state = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         self.joint_states_subscription = self.create_subscription(
             RosJointState,
             'joint_states',
@@ -91,7 +102,7 @@ class CuroboNode(Node):
         )
     
     def joint_state_callback(self, msg):
-        self.latest_joint_state = list(msg.position)[:-1]
+        self.latest_joint_state = list(msg.position)[:]
 
     def init_curobo(self):
         self.world_config_initial = WorldConfig.from_dict(
@@ -103,11 +114,18 @@ class CuroboNode(Node):
             interpolation_dt=0.01,
             world_model=self.world_config_initial,
             collision_checker_type=CollisionCheckerType.MESH,
-            collision_max_outside_distance = 0.0,
-            collision_activation_distance = 0.0,
+            collision_max_outside_distance = 0.0001,
+            collision_activation_distance = 0.0001,
             collision_cache={"obb": self.n_obstacle_cuboids, "mesh": self.n_obstacle_mesh},
         )
-        
+        mpc_config = MpcSolverConfig.load_from_robot_config(
+            self.robot_config_file,
+            self.world_config_initial,
+            store_rollouts=True,
+            step_dt=0.03,
+        )
+
+        self.mpc = MpcSolver(mpc_config)
         self.motion_gen = MotionGen(motion_gen_config)
         self.motion_gen.warmup()
         self.subscription = self.create_subscription(String, 'world_state_json', self.world_callback, 10)
@@ -127,6 +145,7 @@ class CuroboNode(Node):
             new_world.add_obstacle(cur_mesh)
         new_world.add_obstacle(self.world_config_initial.cuboid[0])
         self.motion_gen.update_world(new_world)
+        self.mpc.update_world(new_world)
     
     def plan_motion_js(self, start_state, goal_state):
         current_state = JointState.from_position(torch.tensor([start_state], device="cuda:0", dtype=torch.float32))
@@ -142,15 +161,47 @@ class CuroboNode(Node):
         else:
             return False, [], 0, str(result)
 
-    def plan_motion(self, start_position, goal_position):
+    async def plan_motion(self, start_position, goal_position, mpc = False):
         goal_pose = Pose(
             position=self.tensor_args.to_device([goal_position[:3]]),
             quaternion=self.tensor_args.to_device([goal_position[3:]])  
         )
-        current_position = JointState.from_position(
+        start_state = JointState.from_position(
             torch.tensor([start_position], device="cuda:0", dtype=torch.float32))
 
-        result = self.motion_gen.plan_single(current_position, goal_pose, MotionGenPlanConfig(max_attempts=10000))
+        if mpc:
+
+            goal = Goal(
+                current_state=start_state,
+                goal_pose=goal_pose
+            )
+            goal_buffer = self.mpc.setup_solve_single(goal, 1)
+            self.mpc.update_goal(goal_buffer)
+            converged = False
+            tstep = 0
+            traj_list = []
+            mpc_time = []
+            
+            while not converged:
+                start_state = JointState.from_position(
+                    torch.tensor([self.latest_joint_state], device="cuda:0", dtype=torch.float32))
+                st_time = time.time()
+                result = self.mpc.step(start_state, 1)
+                torch.cuda.synchronize()
+                if tstep > 5:
+                    mpc_time.append(time.time() - st_time)
+                traj_list.append(result.action.get_state_tensor())
+                tstep += 1
+                if result.metrics.pose_error.item() < 0.05:
+                    converged = True
+                if tstep > 300:
+                    break
+                execution_success = await self.execute_trajectory(
+                   result.action.position.cpu().numpy()
+                )
+            return True, [], 0, str(result)
+        else:
+            result = self.motion_gen.plan_single(start_state, goal_pose, MotionGenPlanConfig(max_attempts=10000))
 
         if result.success.item():
             trajectory = result.get_interpolated_plan().position.tolist()
@@ -161,30 +212,28 @@ class CuroboNode(Node):
             return False, [], 0, str(result)
     
     async def execute_trajectory(self, trajectory):
-        
-        self.get_logger().info(f"Executing trajectory with {len(trajectory)} waypoints")
-        
         for i, waypoint in enumerate(trajectory):
-            goal_msg = PublishJoints.Goal()
-            goal_msg.positions = waypoint
-            goal_msg.indices = list(range(len(waypoint)))
-            
-            self.get_logger().debug(f"Sending waypoint {i+1}/{len(trajectory)}")
-            
-            send_goal_future = self._action_client.send_goal_async(goal_msg)
-            goal_handle = await send_goal_future
-            
-            if not goal_handle.accepted:
-                self.get_logger().error(f"Goal for waypoint {i+1} was rejected")
-                return False
-            if self.wait_for_completion:
-                get_result_future = goal_handle.get_result_async()
-                result = await get_result_future
+            if self.mujoco:
+                goal_msg = PublishJoints.Goal()
+                goal_msg.positions = [float(x) for x in waypoint]
+                goal_msg.indices = list(range(len(waypoint)))
                 
-                if not result.result.success:
-                    self.get_logger().error(f"Failed to execute waypoint {i+1}: {result.result.message}")
+                send_goal_future = self._action_client.send_goal_async(goal_msg)
+                goal_handle = await send_goal_future
+                
+                if not goal_handle.accepted:
+                    self.get_logger().error(f"Goal for waypoint {i+1} was rejected")
                     return False
-        self.get_logger().info("Trajectory execution completed successfully")
+                if self.wait_for_completion:
+                    get_result_future = goal_handle.get_result_async()
+                    result = await get_result_future
+                    
+                    if not result.result.success:
+                        self.get_logger().error(f"Failed to execute waypoint {i+1}: {result.result.message}")
+                        return False
+            else:
+                self.publish_joint_states(waypoint)
+                time.sleep(0.01)
         return True
 
     async def execute_movej(self, goal_handle):
@@ -242,9 +291,10 @@ class CuroboNode(Node):
             start_state = goal_handle.request.start_state
         
         goal_pose = goal_handle.request.goal_pose
-        success, trajectory, joints, result_str = self.plan_motion(start_state, goal_pose)
+        mpc = goal_handle.request.mpc
+        success, trajectory, joints, result_str = await self.plan_motion(start_state, goal_pose, mpc = mpc)
         
-        if success:
+        if success and not mpc:
             self.get_logger().info("Motion planning successful, executing trajectory")
             execution_success = await self.execute_trajectory(
                 trajectory
@@ -263,6 +313,26 @@ class CuroboNode(Node):
             trajectory=[item for sublist in trajectory for item in sublist], 
             joints=joints
         )
+
+    def publish_joint_states(self, positions, velocities = []):
+
+        joint_state_msg = RosJointState()
+        joint_state_msg.header = Header()
+        names = [
+            "linear_rail",
+            "ur_shoulder_pan_joint",
+            "ur_shoulder_lift_joint",
+            "ur_elbow_joint",
+            "ur_wrist_1_joint",
+            "ur_wrist_2_joint",
+            "ur_wrist_3_joint",
+        ]
+        joint_state_msg.header.stamp = self.get_clock().now().to_msg()
+        joint_state_msg.name = names
+
+        joint_state_msg.position = positions
+        joint_state_msg.velocity = velocities
+        self.joint_state_publisher.publish(joint_state_msg)
 
 def main(args=None):
     rclpy.init(args=args)

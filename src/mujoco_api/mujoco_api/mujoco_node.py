@@ -158,12 +158,21 @@ class MujocoNode(Node):
             
         joint_state_msg = JointState()
         joint_state_msg.header = Header()
+        names = [
+            "linear_rail",
+            "ur_shoulder_pan_joint",
+            "ur_shoulder_lift_joint",
+            "ur_elbow_joint",
+            "ur_wrist_1_joint",
+            "ur_wrist_2_joint",
+            "ur_wrist_3_joint",
+        ]
         joint_state_msg.header.stamp = self.get_clock().now().to_msg()
-        joint_state_msg.name = self.env.ctrl_names.copy()
+        joint_state_msg.name = names
         positions = []
         velocities = []
         
-        for i, ctrl_idx in enumerate(self.env.ctrl_joint_idxs):
+        for i, ctrl_idx in enumerate(self.env.ctrl_joint_idxs[:-1]):
             pos = self.env.data.qpos[self.env.ctrl_qpos_idxs[i]]
             positions.append(pos)
             vel = self.env.data.qvel[self.env.ctrl_qvel_idxs[i]]
@@ -171,7 +180,7 @@ class MujocoNode(Node):
         
         joint_state_msg.position = positions
         joint_state_msg.velocity = velocities
-        joint_state_msg.effort = list(self.env.data.ctrl)
+        joint_state_msg.effort = list(self.env.data.ctrl[:-1])
         self.joint_state_publisher.publish(joint_state_msg)
 
 def main(args=None):

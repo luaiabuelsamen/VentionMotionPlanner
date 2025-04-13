@@ -1,6 +1,7 @@
 # Goal definition
 float32[] start_state
 float32[] goal_pose
+bool mpc
 ---
 # Result definition
 bool success
