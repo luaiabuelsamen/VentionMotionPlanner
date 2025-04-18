@@ -307,7 +307,7 @@ def main(args=None):
     except Exception as e:
         print(f"Error during pick and place operation: {e}")
     finally:
-        rclpy.shutdown()
+        rclpy()
 
 
 if __name__ == '__main__':
