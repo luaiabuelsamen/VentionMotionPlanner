@@ -172,7 +172,7 @@ class MujocoNode(Node):
         positions = []
         velocities = []
         
-        for i, ctrl_idx in enumerate(self.env.ctrl_joint_idxs[:-1]):
+        for i, ctrl_idx in enumerate(self.env.ctrl_joint_idxs[:]):
             pos = self.env.data.qpos[self.env.ctrl_qpos_idxs[i]]
             positions.append(pos)
             vel = self.env.data.qvel[self.env.ctrl_qvel_idxs[i]]

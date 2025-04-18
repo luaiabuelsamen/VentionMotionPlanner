@@ -10,6 +10,10 @@
             <geom size="0.07 0.07 0.5" type="box" rgba="0.3 0.5 0.8 1" />
         </body>
 
+        <body name="col_2" pos="0.0 -0.50 0.035" >
+            <geom size="0.07 0.07 0.5" type="box" rgba="0.3 0.5 0.8 1" />
+        </body>
+
 
 
     </worldbody>

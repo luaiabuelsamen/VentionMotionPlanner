@@ -90,19 +90,19 @@
 
   <worldbody>
     <!-- Fixed base -->
-    <body name="bs_link" pos="0 0 0">
+    <body name="bs_link" pos="0 0 -0.12">
       <inertial mass="45" diaginertia="0.9322 15.045 15.888" pos="0 0 0.043056"/>
       <geom type="mesh" mesh="gantry_base" material="light_gray" contype="1" conaffinity="1"/>
       
       <!-- Moving rail -->
       <body name="linear_rail" pos="0 0 0.12">
         <!-- Added damping to the rail_slide joint -->
-        <joint name="rail_slide" type="slide" axis="-1 0 0" pos="0 0 0" limited="true" range="-1 1" damping="5"/>
+        <joint name="rail_slide" type="slide" axis="1 0 0" pos="0 0 0" limited="true" range="-1 1" damping="5"/>
         <inertial mass="7.5" diaginertia="0.050938 0.063438 0.1" pos="0 0 -0.05"/>
         <geom type="mesh" mesh="gantry_rail" material="light_gray" contype="2" conaffinity="2"/>
         
         <!-- Robot base -->
-        <body name="ur5e/base" pos="0 0 0" quat="1 0 0 0" childclass="ur5e">
+        <body name="ur5e/base" pos="0 0 0.0" quat="1 0 0 0" childclass="ur5e">
           <inertial mass="4" pos="0 0 0" diaginertia="0.00443333156 0.00443333156 0.0072"/>
           <geom mesh="base_0" material="black" class="visual"/>
           <geom mesh="base_1" material="jointgray" class="visual"/>
@@ -162,10 +162,10 @@
                         <site name="attachment_site" rgba="1 0 0 1" size="0.01" group="1"/>
                         <body name="vacuum_gripper" pos="0 0 0">
                           <body name="suction_pad" pos="0 0 0.01" childclass="active_adhesion"> 
-                            <geom name="suction_surface_1" type="box" pos="0.04 0.04 0.0" size="0.04 0.04 0.01" material="gray" friction="2.5 0.3 0.05" solimp="0.95 0.99 0.0001" solref="0.005 4"/>
+                            <!-- <geom name="suction_surface_1" type="box" pos="0.04 0.04 0.0" size="0.04 0.04 0.01" material="gray" friction="2.5 0.3 0.05" solimp="0.95 0.99 0.0001" solref="0.005 4"/>
                             <geom name="suction_surface_2" type="box" pos="-0.04 0.04 0.0" size="0.04 0.04 0.01" material="gray" friction="2.5 0.3 0.05" solimp="0.95 0.99 0.0001" solref="0.005 4"/>
                             <geom name="suction_surface_3" type="box" pos="-0.04 -0.04 0.0" size="0.04 0.04 0.01" material="gray" friction="2.5 0.3 0.05" solimp="0.95 0.99 0.0001" solref="0.005 4"/>
-                            <geom name="suction_surface_4" type="box" pos="0.04 -0.04 0.0" size="0.04 0.04 0.01" material="gray" friction="2.5 0.3 0.05" solimp="0.95 0.99 0.0001" solref="0.005 4"/>
+                            <geom name="suction_surface_4" type="box" pos="0.04 -0.04 0.0" size="0.04 0.04 0.01" material="gray" friction="2.5 0.3 0.05" solimp="0.95 0.99 0.0001" solref="0.005 4"/> -->
                           </body>
                         </body>
                       </body>
