@@ -11,7 +11,7 @@ ur5e_with_gantry:
       - bs_link
       - linear_railf
       - col_1
-      - col_2f
+      - col_2
 
 ur5e_with_suction:
   curobo:
@@ -19,34 +19,11 @@ ur5e_with_suction:
     robot_config_file: ur5e.yml
   mujoco:
     xml_path: assets/ur5e/scene_ur5e_2f140_obj_suction.xml
-    meshes:
-      bs_link: assets/ur5e/mesh/gantry/bs_link.STL
-      linear_rail: assets/ur5e/mesh/gantry/linear_rail.STL
     update_world:
      - col_1
      - col_2
 
 ur5e_with_vention:
-  curobo:
-    world_config_file: config/curobo/world_config/floor.yml
-    robot_config_file: ur5e.yml
-  mujoco:
-    xml_path: assets/ur5e/scene_ur5e.xml
-    meshes:
-      vention: assets/ur5e/mesh/vention/simplified_model.stl
-    update_world: ['none']
-
-# ur5e_with_vention_assembly:
-#   curobo:
-#     world_config_file: config/curobo/world_config/floor.yml
-#     robot_config_file: ur5e.yml
-#   mujoco:
-#     xml_path: assets/ur5e/scene_ur5e.xml
-#     meshes:
-#       vention2: assets/ur5e/mesh/vention/simple_cell.stl
-#     update_world: ['vention2']
-
-ur5e_with_vention_everything:
   curobo:
     world_config_file: config/curobo/world_config/floor.yml
     robot_config_file: ur5e.yml

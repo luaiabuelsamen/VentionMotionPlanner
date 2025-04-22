@@ -14,7 +14,8 @@ def configure_nodes(context, *args, **kwargs):
     mujoco_meshes = []
     mujoco_update_world = []
     nodes = []
-
+    meshes_array = ['None']
+    
     if demo and demo != '':
         try:
             package_share_directory = get_package_share_directory('curobo_api')
@@ -37,11 +38,7 @@ def configure_nodes(context, *args, **kwargs):
                         if 'xml_path' in mujoco_params:
                             mujoco_xml_path = mujoco_params['xml_path']
                         if 'meshes' in mujoco_params:
-                            print("I am here")
-                            
                             mujoco_meshes = mujoco_params['meshes']
-                            print(mujoco_meshes)
-                            meshes_array = []
                             for key, value in mujoco_meshes.items():
                                 meshes_array.append(key)
                                 meshes_array.append(value)
@@ -55,7 +52,6 @@ def configure_nodes(context, *args, **kwargs):
                                 output='screen',
                                 parameters=[{
                                     'xml_path': mujoco_xml_path,
-                                    #'meshes': mujoco_meshes,
                                     'meshes': meshes_array,
                                     'update_world': mujoco_update_world,
                                     'publish_rate': 50.0,
@@ -63,6 +59,8 @@ def configure_nodes(context, *args, **kwargs):
                                 }]
                             )
                         )
+                else:
+                    raise Exception(f'Demo {demo} doesnt exist in yml')
             else:
                 print(f"Warning: demos.yml file not found at {demos_file_path}")
         except Exception as e:

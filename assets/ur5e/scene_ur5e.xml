@@ -3,6 +3,6 @@
   <include file="./ur5e.xml" />
 
   <!-- Floor and Sky -->
-  <include file="../object/floor_sky_below_zero.xml" />
+  <include file="../object/floor_sky_vention_cell.xml" />
 
 </mujoco>

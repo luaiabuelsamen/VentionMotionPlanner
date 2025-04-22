@@ -54,8 +54,8 @@ class MujocoNode(Node):
             cancel_callback=self.cancel_callback
         )
         try:
-            self.env = MuJoCoParserClass(name='UR5e with RG2 gripper', rel_xml_path=self.xml_path, VERBOSE=True)
-            self.env.init_viewer(viewer_title='UR5e with RG2 gripper', viewer_width=1200, viewer_height=800,
+            self.env = MuJoCoParserClass(name='Mujoco Viewer', rel_xml_path=self.xml_path, VERBOSE=True)
+            self.env.init_viewer(viewer_title='Mujoco Viewer', viewer_width=1200, viewer_height=800,
                                 viewer_hide_menus=True)
             self.env.update_viewer(azimuth=66.08, distance=3.0, elevation=-50, lookat=[0.4, 0.18, 0.71],
                                   VIS_TRANSPARENT=False, VIS_CONTACTPOINT=False,
@@ -71,7 +71,7 @@ class MujocoNode(Node):
                 self.target_positions.extend([0.0] * (self.env.n_ctrl - len(self.target_positions)))
             self.target_positions = self.target_positions[:self.env.n_ctrl]
             self.target_indices = list(range(len(self.target_positions)))
-            self.step_timer = self.create_timer(0.01, self.step_simulation, callback_group=self.callback_group)
+            self.step_timer = self.create_timer(0.000001, self.step_simulation, callback_group=self.callback_group)
             self.publish_timer = self.create_timer(1.0/self.publish_rate, self.publish_joint_states, callback_group=self.callback_group)
             self.publisher = self.create_publisher(String, 'world_state_json', 10)
             self.timer = self.create_timer(0.1, self.publish_state)

@@ -59,6 +59,20 @@
           package. Users CANNOT rely on this file being available, or stored in
           this location. Nor can they rely on the existence of the macro.
   -->
+  
+  <!-- Add world link as the root -->
+  <link name="world"/>
+  
+  <!-- Add prismatic joint for x-axis movement -->
+  <joint name="base_x" type="prismatic">
+    <parent link="world"/>
+    <child link="base_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit effort="1000.0" lower="-10.0" upper="10.0" velocity="1.0"/>
+    <dynamics damping="0" friction="0"/>
+  </joint>
+  
   <transmission name="shoulder_pan_trans">
     <type>transmission_interface/SimpleTransmission</type>
     <joint name="shoulder_pan_joint">
@@ -113,9 +127,20 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
+  
+  <!-- Add transmission for base_x joint -->
+  <transmission name="base_x_trans">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="base_x">
+      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="base_x_motor">
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  
   <!-- links: main serial chain -->
   <link name="base_link"/>
-  <link name="base_link_x"/>
   <link name="base_link_inertia">
     <visual>
       <origin rpy="0 0 3.141592653589793" xyz="0 0 0"/>
@@ -272,22 +297,16 @@
     </inertial>
   </link>
   <!-- joints: main serial chain -->
-  <joint name="base_x" type="prismatic">
-    <origin rpy="0 0 0.0" xyz="0 0 0.0"/>
+  <joint name="base_link-base_link_inertia" type="fixed">
     <parent link="base_link"/>
-    <child link="base_link_x"/>
-    <axis xyz="1 0 0"/>
-    <dynamics damping="10.0"/>
-    <limit effort="87" lower="-1.0" upper="1.0" velocity="1.0"/>
-  </joint>
-
-<joint name="base_fixed" type="fixed">
-    <origin rpy="0 0 0.0" xyz="0 0 0"/>
-    <parent link="base_link_x"/>
     <child link="base_link_inertia"/>
-    <axis xyz="0 0 0"/>
+    <!-- 'base_link' is REP-103 aligned (so X+ forward), while the internal
+           frames of the robot/controller have X+ pointing backwards.
+           Use the joint between 'base_link' and 'base_link_inertia' (a dummy
+           link/frame) to introduce the necessary rotation over Z (of pi rad).
+      -->
+    <origin rpy="0 0 3.141592653589793" xyz="0 0 0"/>
   </joint>
-
   <joint name="shoulder_pan_joint" type="revolute">
     <parent link="base_link_inertia"/>
     <child link="shoulder_link"/>

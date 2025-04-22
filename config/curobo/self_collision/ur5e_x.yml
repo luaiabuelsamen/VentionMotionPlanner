@@ -20,7 +20,7 @@ robot_cfg:
     urdf_path: "robot/ur_description/ur5e_x.urdf"
     asset_root_path: "robot/ur_description"
     
-    base_link: "base_link"
+    base_link: "world"
     ee_link: "tool0"
     link_names: null
     lock_joints: null
