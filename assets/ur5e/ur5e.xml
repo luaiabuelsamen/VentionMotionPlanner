@@ -64,10 +64,6 @@
     <mesh name="vention" file="./vention/simplified_base_link_copy.stl" />
     <mesh name="vention2" file="./vention/simplified_base_link_2_copy.stl" />
     <mesh name="vention3" file="./vention/simplified_base_link_3_copy.stl" /> 
-    <!-- <mesh name="vention" file="./vention/simplified_assembly.stl" /> -->
-    <!-- <mesh name="vention" file="./vention/Machine_Tending_cell.stl" /> -->
-    <!-- <mesh name="vention" file="./vention/simple_cell.stl" /> -->
-
   </asset>
 
   <!-- UR5e joints and links -->

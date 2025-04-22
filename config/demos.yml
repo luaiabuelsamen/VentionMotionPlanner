@@ -53,10 +53,10 @@ ur5e_with_vention_everything:
   mujoco:
     xml_path: assets/ur5e/scene_ur5e.xml
     meshes:
-      ventionx: assets/ur5e/mesh/vention/simplified_base_link_copy.stl 
+      vention: assets/ur5e/mesh/vention/simplified_base_link_copy.stl 
       vention1: assets/ur5e/mesh/vention/simplified_base_link_2_copy.stl
       vention2: assets/ur5e/mesh/vention/simplified_base_link_3_copy.stl
     update_world: 
-         - ventionx
+         - vention
          - vention2
          - vention3
