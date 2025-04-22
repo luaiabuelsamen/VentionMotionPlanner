@@ -85,7 +85,7 @@ class CuroboNode(Node):
                 10
             )
             self.mujoco = False    
-            self.latest_joint_state = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+            self.latest_joint_state = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         else:
             self.get_logger().info("PublishJoints action server connected")
             self.joint_state_publisher = None
@@ -104,7 +104,7 @@ class CuroboNode(Node):
         )
     
     def joint_state_callback(self, msg):
-        self.latest_joint_state = list(msg.position)[:]
+        self.latest_joint_state = list(msg.position)[:-1]
 
     def init_curobo(self):
         self.world_config_initial = WorldConfig.from_dict(
@@ -321,6 +321,7 @@ class CuroboNode(Node):
         joint_state_msg = RosJointState()
         joint_state_msg.header = Header()
         names = [
+            "base_x",
             "shoulder_pan_joint",
             "shoulder_lift_joint",
             "elbow_joint",

@@ -159,13 +159,13 @@ class MujocoNode(Node):
         joint_state_msg = JointState()
         joint_state_msg.header = Header()
         names = [
-            "linear_rail",
-            "ur_shoulder_pan_joint",
-            "ur_shoulder_lift_joint",
-            "ur_elbow_joint",
-            "ur_wrist_1_joint",
-            "ur_wrist_2_joint",
-            "ur_wrist_3_joint",
+            "base_x",
+            "shoulder_pan_joint",
+            "shoulder_lift_joint",
+            "elbow_joint",
+            "wrist_1_joint",
+            "wrist_2_joint",
+            "wrist_3_joint",
         ]
         joint_state_msg.header.stamp = self.get_clock().now().to_msg()
         joint_state_msg.name = names
