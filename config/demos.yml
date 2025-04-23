@@ -1,7 +1,7 @@
 ur5e_with_gantry:
   curobo:
     world_config_file: config/curobo/world_config/gantry_table.yml
-    robot_config_file: ur5e_x.yml
+    robot_config_file: ur5e_x
   mujoco:
     xml_path: assets/ur5e/scene_ur5e_obj_gantry_suction.xml
     meshes:
@@ -16,7 +16,7 @@ ur5e_with_gantry:
 ur5e_with_suction:
   curobo:
     world_config_file: config/curobo/world_config/table.yml
-    robot_config_file: ur5e.yml
+    robot_config_file: ur5e
   mujoco:
     xml_path: assets/ur5e/scene_ur5e_2f140_obj_suction.xml
     update_world:
@@ -26,7 +26,7 @@ ur5e_with_suction:
 ur5e_with_vention:
   curobo:
     world_config_file: config/curobo/world_config/floor.yml
-    robot_config_file: ur5e.yml
+    robot_config_file: ur5e
   mujoco:
     xml_path: assets/ur5e/scene_ur5e.xml
     meshes:

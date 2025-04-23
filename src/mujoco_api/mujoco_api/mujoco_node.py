@@ -21,7 +21,7 @@ class MujocoNode(Node):
         self.declare_parameter('xml_path', './src/mujoco_curobo/assets/ur5e/scene_ur5e_2f140_obj_gantry.xml')
         self.declare_parameter('publish_rate', 50.0)  # Hz
         self.declare_parameter('default_positions', [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-        #self.declare_parameter('meshes', [])  # List of meshes (each as a dictionary)
+        self.declare_parameter('joint_names', ['None'])
         self.declare_parameter('update_world', ['None'])  # List of objects to update in the world
         self.xml_path = self.get_parameter('xml_path').value
         self.publish_rate = self.get_parameter('publish_rate').value
@@ -39,6 +39,7 @@ class MujocoNode(Node):
 
         self.meshes = reconstructed_dict
         self.update_world = self.get_parameter('update_world').value
+        self.joint_names = self.get_parameter('joint_names').value
         self.joint_state_publisher = self.create_publisher(
             JointState,
             'joint_states',
@@ -158,21 +159,13 @@ class MujocoNode(Node):
             
         joint_state_msg = JointState()
         joint_state_msg.header = Header()
-        names = [
-            "base_x",
-            "shoulder_pan_joint",
-            "shoulder_lift_joint",
-            "elbow_joint",
-            "wrist_1_joint",
-            "wrist_2_joint",
-            "wrist_3_joint",
-        ]
+        names = self.joint_names
         joint_state_msg.header.stamp = self.get_clock().now().to_msg()
         joint_state_msg.name = names
         positions = []
         velocities = []
         
-        for i, ctrl_idx in enumerate(self.env.ctrl_joint_idxs[:]):
+        for i, ctrl_idx in enumerate(self.env.ctrl_joint_idxs[:len(names)]):
             pos = self.env.data.qpos[self.env.ctrl_qpos_idxs[i]]
             positions.append(pos)
             vel = self.env.data.qvel[self.env.ctrl_qvel_idxs[i]]

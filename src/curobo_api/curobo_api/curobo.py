@@ -104,7 +104,7 @@ class CuroboNode(Node):
         )
     
     def joint_state_callback(self, msg):
-        self.latest_joint_state = list(msg.position)[:-1]
+        self.latest_joint_state = list(msg.position)
 
     def init_curobo(self):
         self.world_config_initial = WorldConfig.from_dict(
