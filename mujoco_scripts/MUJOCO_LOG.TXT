@@ -64,3 +64,6 @@ WARNING: Nan, Inf or huge value in QACC at DOF 22. The simulation is unstable. T
 Thu Feb 27 15:11:58 2025
 WARNING: Nan, Inf or huge value in QACC at DOF 15. The simulation is unstable. Time = 5.9400.
 
+Tue Apr 22 20:27:52 2025
+WARNING: File size over 2GB is not supported. File: '/home/jetson3/ros2_ws/mujoco_scripts'
+

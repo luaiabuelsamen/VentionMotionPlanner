@@ -202,16 +202,6 @@ class UR5ePickPlaceNode(Node):
         # Create pose objects
         pick_pose = Pose(position=pick_pos, quaternion=pick_quat)
         place_pose = Pose(position=place_pos, quaternion=place_quat)
-        
-        # Plan trajectory from home to pick
-        # self.get_logger().info('Planning: Home to Pick')
-        # result_home_to_pick = self.motion_gen.plan_single_js(
-        #     home_state,
-        #     pick_state,
-        #     MotionGenPlanConfig(max_attempts=3, time_dilation_factor=0.5),
-        # )
-
-        # Plan trajectory from home to pick
         self.get_logger().info('Planning: Home to Pick')
         result_home_to_pick = self.motion_gen.plan_single(
             home_state,
@@ -223,18 +213,9 @@ class UR5ePickPlaceNode(Node):
             self.get_logger().error(f'Failed to plan home to pick trajectory: {result_home_to_pick.status}')
             raise RuntimeError("Home to pick trajectory planning failed")
         
-        # Get final state from pre-pick to pick trajectory
         pick_state = CuRoboJointState.from_position(
             result_home_to_pick.get_interpolated_plan().position[-1].reshape(1, -1)
         )
-        
-        # Plan trajectory from pick to place
-        # self.get_logger().info('Planning: Pick to Place')
-        # result_pick_to_place = self.motion_gen.plan_single_js(
-        #     pick_state,
-        #     place_state,
-        #     MotionGenPlanConfig(max_attempts=3, time_dilation_factor=0.5),
-        # )
 
         self.get_logger().info('Planning: Pick to Place')
         result_pick_to_place = self.motion_gen.plan_single(
@@ -248,11 +229,9 @@ class UR5ePickPlaceNode(Node):
             self.get_logger().error(f'Failed to plan pick to place trajectory: {result_pick_to_place.status}')
             raise RuntimeError("Pick to place trajectory planning failed")
         
-        # Get interpolated trajectories
         home_to_pick_traj = result_home_to_pick.get_interpolated_plan()
         pick_to_place_traj = result_pick_to_place.get_interpolated_plan()
         
-        # Log trajectory details
         self.get_logger().info(f'Home to Pick: Duration={result_home_to_pick.motion_time.item():.2f}s, Points={len(home_to_pick_traj.position)}')
         self.get_logger().info(f'Pick to Place: Duration={result_pick_to_place.motion_time.item():.2f}s, Points={len(pick_to_place_traj.position)}')
 
@@ -272,7 +251,6 @@ class UR5ePickPlaceNode(Node):
     def execute_trajectory(self, trajectory):
         positions = trajectory.position.cpu().numpy().reshape(-1, 7)
         
-        # Create timer frequency to match trajectory timing
         dt = 0.01  # 10Hz for visualization
         for position in positions:
             # Create and publish joint state message

@@ -9,7 +9,7 @@ ur5e_with_gantry:
       linear_rail: assets/ur5e/mesh/gantry/linear_rail.STL
     update_world:
       - bs_link
-      - linear_railf
+      - linear_rail
       - col_1
       - col_2
 
