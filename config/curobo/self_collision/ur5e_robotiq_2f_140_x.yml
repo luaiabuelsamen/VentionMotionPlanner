@@ -20,7 +20,7 @@ robot_cfg:
     urdf_path: "robot/ur_description/ur5e_robotiq_2f_140_x.urdf"
     # asset_root_path: "robot/ur_description"
     external_asset_path: null
-    base_link: "base_link"
+    base_link: "world"
     ee_link: "grasp_frame"
     link_names: null
     lock_joints: {'finger_joint': 0.0}
