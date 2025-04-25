@@ -95,43 +95,34 @@ robot_model = CudaRobotModel(robot_cfg.kinematics)
 goal_idx = 1
 current_state = RoboJointState.from_position(torch.tensor([current_position], device=device))
 
-num_cycles = 5  # Number of pick-place cycles to run
+num_cycles = 20  # Number of pick-place cycles to run
 cycle_count = 0
 
 while cycle_count < num_cycles and env.is_viewer_alive():
-    # Track start time for each motion segment
-    motion_start_time = time.time()
     
-    # Get current joint positions
     current_position = []
     for i, ctrl_idx in enumerate(env.ctrl_joint_idxs[:-1]):
         pos = env.data.qpos[env.ctrl_qpos_idxs[i]]
         current_position.append(float(pos))
     current_state = RoboJointState.from_position(torch.tensor([current_position], device=device))
     
-    # Get current goal
     goal_position = goal_positions[goal_idx]
     goal_pose = Pose(
         position=tensor_args.to_device([goal_position[:3]]),
         quaternion=tensor_args.to_device([goal_position[3:]])
     )
-    
-    # Start time for planning
-    plan_start_time = time.time()
-    
-    # Plan trajectory
+
     result = motion_gen.plan_single(
         current_state,
         goal_pose,
         MotionGenPlanConfig(max_attempts=10000)
     )
-    
-    # Record planning time for the current motion type
-    plan_time = time.time() - plan_start_time
-    if goal_idx == 0:  # If planning to pick position
+
+    plan_time = result.total_time
+    if goal_idx == 0:
         planning_times_pick.append(plan_time)
         current_goal_name = "Pick"
-    else:  # If planning to place position
+    else:
         planning_times_place.append(plan_time)
         current_goal_name = "Place"
     
@@ -140,8 +131,7 @@ while cycle_count < num_cycles and env.is_viewer_alive():
     if result.success.item():
         plan = result.get_interpolated_plan()
         joint_positions = plan.position.tolist()
-        
-        # Execute trajectory and record EE positions
+
         for joint in joint_positions:
             joint_state = torch.tensor(joint, device=tensor_args.device)
             ee_pose = robot_model.get_state(joint_state).ee_position.cpu().numpy()[0]
@@ -155,21 +145,17 @@ while cycle_count < num_cycles and env.is_viewer_alive():
             
             env.step(ctrl=joint, ctrl_idxs=[0, 1, 2, 3, 4, 5, 6])
             env.render()
-        
-        # Calculate motion segment time
-        motion_time = time.time() - motion_start_time
+
+        motion_time = 0.01 * len(joint_positions)
         print(f"{current_goal_name} motion completed in {motion_time:.4f} seconds")
-        
-        # Switch goals
-        goal_idx = 1 - goal_idx  # Toggle between 0 and 1
-        
-        # If we've completed a place (goal_idx is now 0), we've finished a cycle
+
+        goal_idx = 1 - goal_idx
+
         if goal_idx == 1:
-            cycle_end_time = time.time()
-            # Calculate cycle time from two motion segments
             cycle_times.append(motion_time + planning_times_pick[-1] + planning_times_place[-1])
             print(f"Cycle {cycle_count + 1} completed")
             cycle_count += 1
+            motion_time = 0
     else:
         print(f"Failed planning with status: {result.status}")
         print(f"Current state: {current_state}, Goal position: {goal_position}")
@@ -177,27 +163,20 @@ while cycle_count < num_cycles and env.is_viewer_alive():
     
     env.render()
 
-# Close the MuJoCo viewer
 if hasattr(env, 'close_viewer'):
     env.close_viewer()
 
-# Verify we have data to plot
 if not ee_trajectory_data:
     print("No trajectory data collected. Exiting without plotting.")
     exit()
 
-# Convert trajectory data to numpy array for easier plotting
 traj_data = np.array([(d['x'], d['y'], d['z']) for d in ee_trajectory_data])
-
-# Plotting the 3D trajectory
 fig = plt.figure(figsize=(12, 10))
 ax = fig.add_subplot(111, projection='3d')
 
-# Color the trajectory based on cycle
 for cycle in range(cycle_count):
     cycle_data = [d for d in ee_trajectory_data if d['cycle'] == cycle]
     
-    # Plot pick trajectory
     pick_data = [d for d in cycle_data if d['goal'] == "Pick"]
     if pick_data:
         pick_x = [d['x'] for d in pick_data]
