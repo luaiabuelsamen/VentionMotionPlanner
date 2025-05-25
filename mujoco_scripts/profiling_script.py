@@ -25,7 +25,7 @@ cycle_times = []            # Store cycle completion times
 planning_times_pick = []    # Store planning times for pick motion
 planning_times_place = []   # Store planning times for place motion
 
-robot_config_file = "ur5e_robotiq_2f_140_x.yml"
+robot_config_file = "ur5e_x.yml"
 current_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 world_config_inital = WorldConfig.from_dict({
     "cuboid": {
@@ -77,8 +77,8 @@ device = "cuda:0"
 tensor_args = TensorDeviceType(device=device, dtype=torch.float32)
 
 goal_positions = [
-    [-0.5, -0.7, 0.065, 0.0, 0.0, -1.0, 0.0],  # Pose A (pick)
-    [0.5, 0.7, 0.25, 0.0, 0.0, -1.0, 0.0]      # Pose B (place)
+    [-0.5, -0.7, -0.03, 0.0, 0.0, -1.0, 0.0],  # Pose A (pick)
+    [0.5, 0.7, 0.15, 0.0, 0.0, -1.0, 0.0]      # Pose B (place)
 ]
 
 env.init_viewer(viewer_title='UR5e with RG2 gripper', viewer_width=1200, viewer_height=800,
@@ -92,7 +92,7 @@ robot_cfg_file = load_yaml(join_path(get_robot_configs_path(), "ur5e_robotiq_2f_
 robot_cfg = RobotConfig.from_dict(robot_cfg_file, tensor_args)
 robot_model = CudaRobotModel(robot_cfg.kinematics)
 
-goal_idx = 1
+goal_idx = 0
 current_state = RoboJointState.from_position(torch.tensor([current_position], device=device))
 
 num_cycles = 20  # Number of pick-place cycles to run
@@ -101,7 +101,7 @@ cycle_count = 0
 while cycle_count < num_cycles and env.is_viewer_alive():
     
     current_position = []
-    for i, ctrl_idx in enumerate(env.ctrl_joint_idxs[:-1]):
+    for i, ctrl_idx in enumerate(env.ctrl_joint_idxs[:7]):
         pos = env.data.qpos[env.ctrl_qpos_idxs[i]]
         current_position.append(float(pos))
     current_state = RoboJointState.from_position(torch.tensor([current_position], device=device))
@@ -148,20 +148,33 @@ while cycle_count < num_cycles and env.is_viewer_alive():
 
         motion_time = 0.01 * len(joint_positions)
         print(f"{current_goal_name} motion completed in {motion_time:.4f} seconds")
-
+        for _ in range(150):
+            if goal_idx == 0:
+                env.step(ctrl=[1], ctrl_idxs=[7])
+                env.render()
+            else:
+                env.step(ctrl=[0], ctrl_idxs=[7])
+                env.render()
         goal_idx = 1 - goal_idx
 
         if goal_idx == 1:
-            cycle_times.append(motion_time + planning_times_pick[-1] + planning_times_place[-1])
+
+            # cycle_times.append(motion_time + planning_times_pick[-1] + planning_times_place[-1])
             print(f"Cycle {cycle_count + 1} completed")
             cycle_count += 1
             motion_time = 0
+
+        for i in range(100):
+            env.step(ctrl=[goal_idx], ctrl_idxs=[7])
+            env.render()
     else:
         print(f"Failed planning with status: {result.status}")
         print(f"Current state: {current_state}, Goal position: {goal_position}")
         break
     
     env.render()
+
+
 
 if hasattr(env, 'close_viewer'):
     env.close_viewer()
@@ -206,7 +219,7 @@ ax.set_zlabel('Z (m)')
 ax.set_title('End-Effector Trajectory During Pick and Place Operations')
 ax.legend()
 
-plt.savefig('ee_trajectory_3d.png', dpi=300, bbox_inches='tight')
+plt.savefig('plots/ee_trajectory_3d.png', dpi=300, bbox_inches='tight')
 plt.close()
 
 # Calculate and print average cycle time
@@ -246,7 +259,7 @@ if cycle_times:
     plt.legend()
     plt.grid(True, linestyle='--', alpha=0.7)
     plt.tight_layout()
-    plt.savefig('cycle_times.png', dpi=300)
+    plt.savefig('plots/cycle_times.png', dpi=300)
     plt.close()
 
     # Create separate plots for pick and place planning times
@@ -274,7 +287,7 @@ if cycle_times:
         ax2.grid(True, linestyle='--', alpha=0.7)
         
         plt.tight_layout()
-        plt.savefig('planning_times.png', dpi=300)
+        plt.savefig('plots/planning_times.png', dpi=300)
         plt.close()
 
 # 2D projections of the trajectory
@@ -338,7 +351,7 @@ axs[1, 0].legend()
 ax3d.legend()
 
 plt.tight_layout()
-plt.savefig('trajectory_projections.png', dpi=300)
+plt.savefig('plots/trajectory_projections.png', dpi=300)
 plt.close()
 
 print("Analysis complete! Plots saved to disk.")

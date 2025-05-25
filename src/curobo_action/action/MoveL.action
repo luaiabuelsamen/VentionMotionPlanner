@@ -2,6 +2,8 @@
 float32[] start_state
 float32[] goal_pose
 bool mpc
+bool constrained
+int32[] constrained_input
 ---
 # Result definition
 bool success

@@ -1,6 +1,7 @@
 # Goal definition
 float32[] start_state
 float32[] goal_pose
+bool constrained
 ---
 # Result definition
 bool success

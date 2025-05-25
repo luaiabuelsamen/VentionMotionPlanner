@@ -2,7 +2,5 @@
   <option gravity="0 0 -9.81"/>
   <include file="./ur5e_gentry_with_suction.xml"/> 
   <include file="../object/collision_gantry.xml" />
-  <!-- Floor and Sky -->
   <include file="../object/floor_sky_gantry.xml" />
-
 </mujoco>

@@ -9,7 +9,7 @@ import torch
 import numpy as np
 import time
 
-from curobo.wrap.reacher.motion_gen import MotionGen, MotionGenConfig, MotionGenPlanConfig
+from curobo.wrap.reacher.motion_gen import MotionGen, MotionGenConfig, MotionGenPlanConfig, PoseCostMetric
 from curobo.geom.sdf.world import CollisionCheckerType
 from curobo.wrap.reacher.mpc import MpcSolver, MpcSolverConfig
 from curobo.rollout.rollout_base import Goal
@@ -149,12 +149,18 @@ class CuroboNode(Node):
         self.motion_gen.update_world(new_world)
         self.mpc.update_world(new_world)
     
-    def plan_motion_js(self, start_state, goal_state):
+    def plan_motion_js(self, start_state, goal_state, constrained = False, constrained_input = [0, 0, 0, 0, 0, 0]):
         current_state = JointState.from_position(torch.tensor([start_state], device="cuda:0", dtype=torch.float32))
         goal_state = JointState.from_position(torch.tensor([goal_state], device="cuda:0", dtype=torch.float32))
-
-        result = self.motion_gen.plan_single_js(current_state, goal_state, MotionGenPlanConfig(max_attempts=10000))
-
+        if constrained:
+            #trying constrained motion (LU)
+            pose_cost_metric = PoseCostMetric(
+                hold_partial_pose=True,
+                hold_vec_weight=self.tensor_args.to_device(constrained_input), # this should set cost on EE
+            )
+            result = self.motion_gen.plan_single_js(current_state, goal_state, MotionGenPlanConfig(max_attempts=10000, pose_cost_metric= pose_cost_metric))
+        else:
+            result = self.motion_gen.plan_single_js(current_state, goal_state, MotionGenPlanConfig(max_attempts=10000))
         if result.success.item():
             trajectory = result.get_interpolated_plan().position.tolist()
             joints = len(trajectory[0]) if trajectory else 0
@@ -163,7 +169,7 @@ class CuroboNode(Node):
         else:
             return False, [], 0, str(result)
 
-    async def plan_motion(self, start_position, goal_position, mpc = False):
+    async def plan_motion(self, start_position, goal_position, mpc = False, constrained = False, constrained_input = [0 , 0, 0, 0, 0, 0]):
         goal_pose = Pose(
             position=self.tensor_args.to_device([goal_position[:3]]),
             quaternion=self.tensor_args.to_device([goal_position[3:]])  
@@ -202,7 +208,22 @@ class CuroboNode(Node):
                    result.action.position.cpu().numpy()
                 )
             return True, [], 0, str(result)
+        # need later modified with mpc. cause now if MPC is True it will get into MPC first.
+        if constrained:
+            #trying constrained motion
+            pose_cost = PoseCostMetric(
+                hold_partial_pose= True,
+                #hold_vec_weight=self.tensor_args.to_device([0, 0, 0, 0, 1, 0]), # this should constrained y movement
+                #hold_vec_weight=self.tensor_args.to_device([0, 0, 0, 1, 1, 0]), # this should constrained x and y movement
+
+                #hold_vec_weight=self.tensor_args.to_device([1, 1, 1, 1, 1, 0]), # this should set cost on EE
+
+                hold_vec_weight=self.tensor_args.to_device(constrained_input), # this should set cost on EE
+            )
+            self.get_logger().info(f"I am using Constrained")
+            result = self.motion_gen.plan_single(start_state, goal_pose, MotionGenPlanConfig(max_attempts=10000, pose_cost_metric= pose_cost))
         else:
+            self.get_logger().info(f"I am using non Constrained")
             result = self.motion_gen.plan_single(start_state, goal_pose, MotionGenPlanConfig(max_attempts=10000))
 
         if result.success.item():
@@ -254,7 +275,9 @@ class CuroboNode(Node):
             start_state = goal_handle.request.start_state
         
         goal_state = goal_handle.request.goal_pose
-        success, trajectory, joints, result_str = self.plan_motion_js(start_state, goal_state)
+        constrained = goal_handle.request.constrained
+        constrained_input = goal_handle.request.constrained_input
+        success, trajectory, joints, result_str = self.plan_motion_js(start_state, goal_state, constrained=constrained, constrained_input=constrained_input)
         
         if success:
             self.get_logger().info("Motion planning successful, executing trajectory")
@@ -294,7 +317,9 @@ class CuroboNode(Node):
         
         goal_pose = goal_handle.request.goal_pose
         mpc = goal_handle.request.mpc
-        success, trajectory, joints, result_str = await self.plan_motion(start_state, goal_pose, mpc = mpc)
+        constrained = goal_handle.request.constrained
+        constrained_input = goal_handle.request.constrained_input
+        success, trajectory, joints, result_str = await self.plan_motion(start_state, goal_pose, mpc = mpc, constrained = constrained, constrained_input=constrained_input)
         
         if success and not mpc:
             self.get_logger().info("Motion planning successful, executing trajectory")

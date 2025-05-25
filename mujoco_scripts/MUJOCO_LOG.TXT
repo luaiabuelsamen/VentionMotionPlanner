@@ -67,3 +67,15 @@ WARNING: Nan, Inf or huge value in QACC at DOF 15. The simulation is unstable. T
 Tue Apr 22 20:27:52 2025
 WARNING: File size over 2GB is not supported. File: '/home/jetson3/ros2_ws/mujoco_scripts'
 
+Sat May  3 22:09:47 2025
+WARNING: Nan, Inf or huge value in CTRL at ACTUATOR 0. The simulation is unstable. Time = 6.0300.
+
+Sat May  3 22:38:56 2025
+WARNING: Nan, Inf or huge value in CTRL at ACTUATOR 0. The simulation is unstable. Time = 6.0300.
+
+Sun May  4 11:41:51 2025
+WARNING: Nan, Inf or huge value in QACC at DOF 8. The simulation is unstable. Time = 2.2700.
+
+Sun May  4 13:24:19 2025
+WARNING: Nan, Inf or huge value in QACC at DOF 7. The simulation is unstable. Time = 1.0960.
+

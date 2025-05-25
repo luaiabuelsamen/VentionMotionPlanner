@@ -2,10 +2,10 @@ UR5e Pick and Place Performance Statistics
 =========================================
 
 Number of completed cycles: 20
-Average Cycle Time: 21.8538 ± 19.5360 seconds
-Average Planning Time: 10.8650 ± 13.2778 seconds
-Average Pick Planning Time: 10.5245 ± 12.8855 seconds
-Average Place Planning Time: 11.2054 ± 13.6503 seconds
-Average Execution Time: 0.0620 seconds
-Average Pick Execution Time: 0.0580 seconds
-Average Place Execution Time: 0.0659 seconds
+Average Cycle Time: 9.8986 ± 4.3701 seconds
+Average Planning Time: 0.0031 ± 0.0020 seconds
+Average Pick Planning Time: 0.0037 ± 0.0019 seconds
+Average Place Planning Time: 0.0025 ± 0.0019 seconds
+Average Execution Time: 4.9462 seconds
+Average Pick Execution Time: 5.3202 seconds
+Average Place Execution Time: 4.5721 seconds
