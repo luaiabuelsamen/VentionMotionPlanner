@@ -37,7 +37,18 @@ message MotionResponse {
   repeated JointValues trajectory = 3;
 }
 
+
+// SetConfig request/response for dynamic config loading
+message SetConfigRequest {
+  string config_yaml = 1; // YAML config as string
+}
+message SetConfigResponse {
+  bool success = 1;
+  string message = 2;
+}
+
 service MotionPlanner {
   rpc MoveL (MoveLRequest) returns (MotionResponse);
   rpc MoveJ (MoveJRequest) returns (MotionResponse);
+  rpc SetConfig (SetConfigRequest) returns (SetConfigResponse);
 }
