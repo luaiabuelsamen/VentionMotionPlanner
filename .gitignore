@@ -6,3 +6,4 @@ logs
 src/motion_plan/motion_plan/CAD/base_link.STL
 __pycache__
 #assets/ur5e/mesh/vention
+curobo

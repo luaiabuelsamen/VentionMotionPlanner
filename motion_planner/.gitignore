@@ -1,0 +1,13 @@
+# Bazel build artifacts
+bazel-*
+*.o
+*.so
+*.a
+*.pb.cc
+*.pb.h
+/build/
+/dist/
+__pycache__/
+*.pyc
+*.log
+.DS_Store

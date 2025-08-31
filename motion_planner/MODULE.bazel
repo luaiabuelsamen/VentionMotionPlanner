@@ -1,0 +1,6 @@
+module(name = "vention_motion_planner", version = "0.1.0")
+
+bazel_dep(name = "rules_cc", version = "0.1.1")
+bazel_dep(name = "rules_proto", version = "7.0.2")
+bazel_dep(name = "grpc", version = "1.65.0")
+bazel_dep(name = "protobuf", version = "29.0")

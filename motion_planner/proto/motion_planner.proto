@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package motionplanner;
+
+// Cartesian pose message
+message Pose {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+  double qx = 4;
+  double qy = 5;
+  double qz = 6;
+  double qw = 7;
+}
+
+// Joint values message
+message JointValues {
+  repeated double values = 1;
+}
+
+// MoveL (linear move) request
+message MoveLRequest {
+  Pose target_pose = 1;
+  JointValues start_joints = 2;
+}
+
+// MoveJ (joint move) request
+message MoveJRequest {
+  JointValues target_joints = 1;
+  JointValues start_joints = 2;
+}
+
+// Generic response
+message MotionResponse {
+  bool success = 1;
+  string message = 2;
+  repeated JointValues trajectory = 3;
+}
+
+service MotionPlanner {
+  rpc MoveL (MoveLRequest) returns (MotionResponse);
+  rpc MoveJ (MoveJRequest) returns (MotionResponse);
+}
