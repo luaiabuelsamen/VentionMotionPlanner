@@ -1,3 +1,14 @@
+#include <csignal>
+#include <atomic>
+#include <iostream>
+std::atomic<bool> g_terminate(false);
+
+void signal_handler(int signal) {
+    if (signal == SIGINT || signal == SIGTERM) {
+        std::cout << "\nReceived signal " << signal << ", shutting down..." << std::endl;
+        g_terminate = true;
+    }
+}
 // motion_planner_server.cpp
 // Async gRPC server skeleton for curobo-based motion planning
 
@@ -41,23 +52,6 @@ public:
         std::cout << "Server listening on " << server_address << std::endl;
         HandleRpcs();
     }
-public:
-    ~MotionPlannerServiceImpl() { 
-        server_->Shutdown(); 
-        cq_->Shutdown(); 
-    }
-
-    void Run(const std::string& server_address) {
-        ServerBuilder builder;
-        builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
-        builder.RegisterService(&service_);
-        cq_ = builder.AddCompletionQueue();
-        server_ = builder.BuildAndStart();
-        std::cout << "Server listening on " << server_address << std::endl;
-    Py_Initialize();
-        HandleRpcs();
-    Py_Finalize();
-    }
 
 
 private:
@@ -79,6 +73,7 @@ private:
                 service_->RequestMoveL(&ctx_, &request_, &responder_, cq_, cq_, this);
             } else if (status_ == PROCESS) {
                 new MoveLCallData(service_, cq_, backend_); // Spawn new handler
+                std::cout << "[MoveL] Received request: target_pose=(" << request_.target_pose().x() << ", " << request_.target_pose().y() << ", " << request_.target_pose().z() << ")" << std::endl;
                 backend_->planMoveL(request_, &response_);
                 status_ = FINISH;
                 responder_.Finish(response_, Status::OK, this);
@@ -109,6 +104,12 @@ private:
                 service_->RequestMoveJ(&ctx_, &request_, &responder_, cq_, cq_, this);
             } else if (status_ == PROCESS) {
                 new MoveJCallData(service_, cq_, backend_); // Spawn new handler
+                std::cout << "[MoveJ] Received request: target_joints=[";
+                for (int i = 0; i < request_.target_joints().values_size(); ++i) {
+                    std::cout << request_.target_joints().values(i);
+                    if (i < request_.target_joints().values_size() - 1) std::cout << ", ";
+                }
+                std::cout << "]" << std::endl;
                 backend_->planMoveJ(request_, &response_);
                 status_ = FINISH;
                 responder_.Finish(response_, Status::OK, this);
@@ -171,9 +172,10 @@ private:
         new SetConfigCallData(&service_, cq_.get(), backend_);
         void* tag;
         bool ok;
-        while (cq_->Next(&tag, &ok)) {
+        while (!g_terminate && cq_->Next(&tag, &ok)) {
             static_cast<CallDataBase*>(tag)->Proceed(ok);
         }
+        std::cout << "Server loop exited." << std::endl;
     }
 
     std::unique_ptr<ServerCompletionQueue> cq_;
@@ -183,6 +185,8 @@ private:
 };
 
 int main(int argc, char** argv) {
+    std::signal(SIGINT, signal_handler);
+    std::signal(SIGTERM, signal_handler);
     std::string server_address("0.0.0.0:50051");
     std::string planner_type = "curobo";
     std::string config_path;
